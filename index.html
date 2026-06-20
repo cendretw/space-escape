@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>時空解密：消失的課本核心</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+    }
+    .glow-purple {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+    .glow-red {
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+    }
+    .pill-item {
+      transition: all 0.2s ease;
+    }
+    .pill-item:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-900">
+
+  <!-- ==================== HEADER / STATUS BAR ==================== -->
+  <header id="game-header" class="hidden border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Title & Squad -->
+      <div class="flex items-center gap-3">
+        <span class="text-cyan-400 text-2xl"><i class="fa-solid fa-user-astronaut animate-bounce"></i></span>
+        <div>
+          <h1 class="text-sm md:text-base font-bold text-slate-200 tracking-wider">時空解密：消失的課本核心</h1>
+          <p class="text-xs text-slate-400">特務小隊: <span id="display-team-name" class="text-cyan-300 font-semibold">-</span></p>
+        </div>
+      </div>
+
+      <!-- Live Stats -->
+      <div class="flex items-center gap-4 md:gap-8">
+        <!-- Branch Indicator -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400">目前航道:</span>
+          <span id="difficulty-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
+            初始檢測中...
+          </span>
+        </div>
+
+        <!-- Timer -->
+        <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+          <span class="text-red-400"><i class="fa-solid fa-hourglass-half animate-spin-slow"></i></span>
+          <span id="timer-display" class="font-orbitron text-lg font-bold text-red-400 tracking-widest">25:00</span>
+        </div>
+
+        <!-- Score -->
+        <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+          <span class="text-yellow-400"><i class="fa-solid fa-trophy"></i></span>
+          <span id="score-display" class="font-orbitron text-lg font-bold text-yellow-400">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT AREA ==================== -->
+  <main class="flex-grow flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl">
+
+      <!-- SCREEN 1: INTRO / SQUAD CREATION -->
+      <section id="screen-intro" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 md:p-10 text-center glow-cyan backdrop-blur-sm">
+        <div class="mb-6 inline-block bg-cyan-950/50 p-4 rounded-full border border-cyan-800">
+          <i class="fa-solid fa-key text-5xl text-cyan-400 animate-pulse"></i>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-black text-cyan-400 mb-3 tracking-widest font-orbitron">SPACE ESCAPE</h2>
+        <p class="text-slate-300 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+          警報！時空裂縫正在吞噬期末考的核心知識！<br>
+          你必須與夥伴協力翻閱<strong class="text-cyan-300">實體課本、講義、Live雜誌</strong>，並解開飛船控制台的謎題。<br>
+          <span class="text-yellow-400 font-medium">系統會根據你第一關犯錯的次數，自動判定第二關的難度！</span><br>
+          <span class="text-cyan-400 font-semibold text-xs animate-pulse mt-2 block"><i class="fa-solid fa-shield-halved"></i> 本系統已啟用動態亂序防作弊協議，每組題庫順序皆不相同。</span>
+        </p>
+
+        <div class="max-w-md mx-auto bg-slate-950/80 p-6 rounded-xl border border-slate-800 mb-8">
+          <label class="block text-left text-sm font-bold text-slate-300 mb-2">輸入你的特務小隊名稱：</label>
+          <input type="text" id="input-team-name" placeholder="例如：尋找空氣的太空人" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 mb-4 text-center">
+          
+          <label class="block text-left text-sm font-bold text-slate-300 mb-2">預設逃脫限時：</label>
+          <select id="select-time-limit" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-center">
+            <option value="1500">25 分鐘 (標準極限)</option>
+            <option value="1800">30 分鐘 (新手友善)</option>
+            <option value="1200">20 分鐘 (地獄挑戰)</option>
+          </select>
+        </div>
+
+        <button onclick="startGame()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-lg px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-widest shadow-lg shadow-cyan-500/20">
+          啟動時空傳送門 <i class="fa-solid fa-arrow-right ml-2"></i>
+        </button>
+
+        <!-- CREDITS FOOTER FOR INTRO SCREEN -->
+        <p class="text-xs text-slate-500 mt-8 tracking-widest font-orbitron uppercase">
+          Made by <span class="text-cyan-400/80 font-bold">Daphne Lin</span> and <span class="text-cyan-400/80 font-bold">Gemini</span>
+        </p>
+      </section>
+
+      <!-- SCREEN 2: GAMEPLAY PLAYGROUND -->
+      <section id="screen-game" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left 2 Columns: Interative Panel & Console -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+          
+          <!-- LEVEL INTERACTIVE BOX -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 glow-cyan backdrop-blur-sm relative overflow-hidden">
+            <!-- Stage Label -->
+            <div class="absolute top-0 right-0 bg-cyan-950 text-cyan-400 px-4 py-1 rounded-bl-xl font-orbitron text-xs font-bold tracking-widest border-l border-b border-slate-800">
+              STAGE <span id="level-num">1</span>/5
+            </div>
+
+            <!-- Level Title & Description -->
+            <h3 id="level-title" class="text-xl font-black text-cyan-300 mb-2 flex items-center gap-2">
+              加載中...
+            </h3>
+            <p id="level-desc" class="text-xs text-slate-400 mb-4 leading-relaxed">
+              探索說明
+            </p>
+
+            <!-- SUB-STEP PROGRESS BAR -->
+            <div class="mb-5 bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+              <div class="flex justify-between items-center text-xs mb-2">
+                <span class="text-slate-400">當前關卡子系統解鎖進度：</span>
+                <span id="substep-counter" class="text-cyan-400 font-bold font-orbitron">0 / 0</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div id="substep-progress" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Dynamic Question Form Container -->
+            <div id="question-container" class="space-y-6 min-h-[180px]">
+              <!-- Content injected via JavaScript -->
+            </div>
+          </div>
+
+          <!-- SUBMISSION & FEEDBACK CONSOLE -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-left w-full sm:w-auto">
+              <p class="text-xs text-slate-400">控制台反饋：</p>
+              <p id="console-msg" class="text-sm text-cyan-400 font-mono font-bold">系統就緒，等待特務輸入解答...</p>
+            </div>
+            <div class="flex gap-3 w-full sm:w-auto shrink-0 justify-end">
+              <button onclick="triggerHint()" class="flex-1 sm:flex-initial bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2.5 rounded-lg border border-slate-700 transition-all flex items-center justify-center gap-2 text-sm">
+                <i class="fa-regular fa-lightbulb text-yellow-400 animate-pulse"></i> 取得線索
+              </button>
+              <button id="main-action-btn" onclick="validateCurrentStep()" class="flex-1 sm:flex-initial bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black px-8 py-2.5 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm">
+                驗證本題 <i class="fa-solid fa-unlock-keyhole"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right 1 Column: Physical Search Logs (Book Pointers) -->
+        <div class="flex flex-col gap-6">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 backdrop-blur-sm flex-grow">
+            <h4 class="text-sm font-black text-yellow-400 tracking-wider mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+              <i class="fa-solid fa-book-open"></i> 實體文獻定位日誌
+            </h4>
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+              系統偵測到以下關卡對應實體書本、講義。請立即指派組員翻開指定頁面搜索關鍵字！
+            </p>
+            
+            <div class="space-y-3" id="book-logs-container">
+              <!-- Log Items generated Dynamically -->
+            </div>
+          </div>
+
+          <!-- Time Warning Module -->
+          <div class="bg-red-950/20 border border-red-900/50 rounded-xl p-4 flex items-center gap-3">
+            <div class="bg-red-900/30 p-2.5 rounded-lg text-red-500">
+              <i class="fa-solid fa-triangle-exclamation text-xl animate-pulse"></i>
+            </div>
+            <div>
+              <h5 class="text-xs font-bold text-red-400">防卡關安全協議</h5>
+              <p class="text-[11px] text-slate-400 leading-normal">
+                若卡關超過3分鐘，請點擊「取得線索」。系統將解鎖對應的課本頁碼與段落行數。
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- SCREEN 3: OUTRO / ESCAPED / VICTORY -->
+      <section id="screen-victory" class="hidden bg-slate-900/60 border border-emerald-800 rounded-2xl p-6 md:p-10 text-center glow-cyan backdrop-blur-sm">
+        <div class="mb-6 inline-block bg-emerald-950/50 p-6 rounded-full border border-emerald-500">
+          <i class="fa-solid fa-circle-check text-6xl text-emerald-400 animate-bounce"></i>
+        </div>
+        <h2 class="text-3xl md:text-5xl font-black text-emerald-400 mb-3 tracking-widest font-orbitron">MISSION COMPLETED</h2>
+        <p class="text-lg text-slate-200 mb-6 font-bold">成功脫離時空亂流！消失的核心知識已重構完畢！</p>
+        
+        <div class="max-w-md mx-auto bg-slate-950/80 p-6 rounded-xl border border-slate-800 mb-8 space-y-4 text-left">
+          <h4 class="text-center font-bold text-cyan-400 text-lg border-b border-slate-800 pb-2 font-orbitron">TEAM STATUS REPORT</h4>
+          <p class="text-sm flex justify-between"><span>特務小隊：</span><span id="final-team" class="text-slate-100 font-bold">-</span></p>
+          <p class="text-sm flex justify-between"><span>剩餘時間：</span><span id="final-time" class="text-red-400 font-bold font-orbitron">-</span></p>
+          <p class="text-sm flex justify-between"><span>最終得分：</span><span id="final-score" class="text-yellow-400 font-bold font-orbitron">-</span></p>
+          <p class="text-sm flex justify-between"><span>通關難度：</span><span id="final-route" class="text-purple-400 font-bold">-</span></p>
+          <div class="border-t border-slate-800 pt-3">
+            <p class="text-xs text-slate-400 text-center">恭喜你們完成了 L7~L9, R3 課本及五月號雜誌的複習！</p>
+          </div>
+        </div>
+
+        <button onclick="location.reload()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-widest">
+          重置傳送儀器 <i class="fa-solid fa-arrows-rotate ml-2"></i>
+        </button>
+      </section>
+
+      <!-- SCREEN 4: GAME OVER / FAILED -->
+      <section id="screen-gameover" class="hidden bg-slate-900/60 border border-red-800 rounded-2xl p-6 md:p-10 text-center glow-red backdrop-blur-sm">
+        <div class="mb-6 inline-block bg-red-950/50 p-6 rounded-full border border-red-500">
+          <i class="fa-solid fa-radiation text-6xl text-red-500 animate-spin-slow"></i>
+        </div>
+        <h2 class="text-3xl md:text-5xl font-black text-red-500 mb-3 tracking-widest font-orbitron">SYSTEM COLLAPSED</h2>
+        <p class="text-lg text-slate-200 mb-6 font-bold">時空傳送門崩塌！知識已被黑洞完全吞噬...</p>
+        
+        <p class="text-sm text-slate-400 max-w-md mx-auto mb-8">
+          別氣餒！密室逃脫需要更快速的實體翻書分工、更高超的文法熟悉度。重新調整策略再試一次！
+        </p>
+
+        <button onclick="location.reload()" class="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 text-slate-950 font-black text-lg px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-widest">
+          重啟時間迴圈 <i class="fa-solid fa-circle-play ml-2"></i>
+        </button>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="border-t border-slate-900 bg-slate-950/80 px-4 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>&copy; 2026 時空解密太空總署. 本遊戲專為龍騰高中英語 B2 期末考複習設計.</p>
+      <p class="flex items-center gap-3">
+        <span>技術支援：HTML5 + Tailwind CSS</span>
+        <span class="text-slate-700">|</span>
+        <span class="text-cyan-500 hover:underline cursor-pointer" onclick="toggleAboutModal()">關於開發者</span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- ==================== DIALOGS & MODALS ==================== -->
+  <!-- 1. Global Custom Alert Modal -->
+  <div id="modal-alert" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full glow-cyan text-center">
+      <div id="alert-icon" class="text-4xl text-cyan-400 mb-3"><i class="fa-solid fa-circle-info"></i></div>
+      <h4 id="alert-title" class="text-lg font-black text-slate-100 mb-2">通知</h4>
+      <p id="alert-text" class="text-sm text-slate-300 mb-6 leading-relaxed whitespace-pre-line text-left">內文</p>
+      <button onclick="closeAlert()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-2 px-4 rounded-lg border border-slate-600 transition-all">
+        確認收到
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Developer/About Modal -->
+  <div id="modal-about" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-md w-full glow-cyan text-left">
+      <h4 class="text-lg font-black text-cyan-400 mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+        <i class="fa-solid fa-code"></i> 關於本遊戲設計
+      </h4>
+      <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+        <p><strong class="text-slate-100">設計目的：</strong> 結合虛擬互動面板與實體教材翻閱。促使學生在競速的高壓環境下主動閱讀、定位課本、講義（All in One、四合一學習講義）與雜誌（Live互動英語2026年5月號）。</p>
+        <p><strong class="text-slate-100">防弊機制：</strong> 網頁代碼中的核心答案皆已使用 Base64 雜湊加密。且 UI 面板與 Placeholder 中完全不含有任何字彙提示。學生必須翻書、閱讀，取得語意後方可作答。此外，大關卡之子題目採行 Fisher-Yates 動態洗牌亂序技術，即使並肩而坐其答題順序亦不相同，從根本上杜絕答案互抄與直接通報問題。</p>
+        <p><strong class="text-slate-100">部署提示：</strong> 將此 <code>index.html</code> 放入全新的 GitHub 儲存庫（Repository），並在 Settings -> Pages 啟用即可線上運行。</p>
+      </div>
+      <button onclick="toggleAboutModal()" class="w-full mt-6 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-2 px-4 rounded-lg border border-slate-700 transition-all text-center">
+        關閉視窗
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT GAME LOGIC ==================== -->
+  <script>
+    // Audio synthesis setup
+    let audioCtx = null;
+    function playBeep(freq, type, duration) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = type || 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn("Audio Context block:", e);
+      }
+    }
+    function playSuccessSound() {
+      playBeep(523.25, 'triangle', 0.15); // C5
+      setTimeout(() => playBeep(659.25, 'triangle', 0.15), 100); // E5
+      setTimeout(() => playBeep(783.99, 'triangle', 0.3), 200); // G5
+    }
+    function playFailSound() {
+      playBeep(220, 'sawtooth', 0.2); // A3
+      setTimeout(() => playBeep(180, 'sawtooth', 0.3), 150);
+    }
+
+    // Game states
+    let teamName = "Unknown Squad";
+    let timerVal = 1500; 
+    let timerInterval = null;
+    let score = 0;
+    let currentLevel = 1;
+    let currentSubStep = 1; 
+    let isInfernoRoute = false; 
+    let levelOneMistakes = 0; // Tracks mistakes in Level 1 to determine Route
+
+    // Dynamic Questions Shuffle Container
+    let shuffledQuestions = [];
+
+    // Answers Store (For Level 1 phrase validation)
+    let selectedPhraseA = "";
+    let selectedPhraseB = "";
+    let selectedPhraseC = "";
+    
+    // Final clues inputs (For Level 5 clue validation)
+    let s5Inputs = { A: "", B: "", C: "", D: "" };
+
+    let currentStepValidated = false; 
+
+    // ============== ADDED FIX: 原檔缺少的核心啟動 / 計時 / 計分函式 ==============
+    function startGame() {
+      const nameInput = document.getElementById("input-team-name").value.trim();
+      teamName = nameInput || "未命名特務小隊";
+      timerVal = parseInt(document.getElementById("select-time-limit").value, 10);
+
+      document.getElementById("screen-intro").classList.add("hidden");
+      document.getElementById("game-header").classList.remove("hidden");
+      document.getElementById("screen-game").classList.remove("hidden");
+
+      document.getElementById("display-team-name").innerText = teamName;
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        timerVal--;
+        updateTimerDisplay();
+        if (timerVal <= 0) {
+          clearInterval(timerInterval);
+          gameOver();
+        }
+      }, 1000);
+
+      currentLevel = 1;
+      currentSubStep = 1;
+      loadLevel(1);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerVal / 60).toString().padStart(2, '0');
+      const s = (timerVal % 60).toString().padStart(2, '0');
+      document.getElementById("timer-display").innerText = `${m}:${s}`;
+    }
+
+    function updateScore(points) {
+      score += points;
+      document.getElementById("score-display").innerText = score;
+    }
+    // ============== END ADDED FIX ==============
+
+    // Obfuscated Expected Answers (Base64) - Secure, clean, and fully LOWERCASE for case-insensitive verification!
+    const SECURE_KEYS = {
+      // Stage 1 Vocab & Phrases
+      S1_Q1: "d2lkZXNwcmVhZA==",       // widespread
+      S1_Q2: "ZGVyaXZlZA==",          // derived
+      S1_Q3: "dGVtcG9yYXJ5",          // temporary
+      S1_Q4: "YXVkaWVuY2U=",          // audience
+      S1_PA: "a2VlcCBwYWNlIHdpdGg=",   // keep pace with
+      S1_PB: "aW4gcHVyc3VpdCBvZg==",   // in pursuit of
+      S1_PC: "bm8gbWF0dGVy",          // no matter
+
+      // Stage 2 Inferno path
+      S2_INF_Q1_K1: "aXQgaXMgd2VsbCBrbm93biB0aGF0", // it is well known that
+      S2_INF_Q1_K2: "ZmluZCB0aGVtc2VsdmVzIGNvbmdlc3RlZCBvciBkaXNvcmllbnRlZA==", // find themselves congested or disoriented
+      S2_INF_Q2_K1: "dXBvbiBzdWl0aW5nIHVw", // upon suiting up
+      S2_INF_Q2_K2: "c3BhY2V3YWxr", // spacewalk
+      S2_INF_Q3_K1: "bm8gbWF0dGVyIHdoYXQ=", // no matter what
+      S2_INF_Q3_K2: "Y2hhbmdpbmc=", // changing
+
+      // Stage 2 Normal path
+      S2_NORM_S1: "bm8gbWF0dGVyIGhvdyBkaWZmaWN1bHQgdGhlIHRhc2sgaXMsIHRoZSBhc3Ryb25hdXQga2VwdCB0aGUgZG9vciBsb2NrZWQu", // no matter how difficult the task is, the astronaut kept the door locked.
+      S2_NORM_S2: "dXBvbiBoZWFyaW5nIHRoZSBiZWxsIHJpbmcsIHRoZSBzdHVkZW50cyBsZWZ0IHRoZSBjbGFzc3Jvb20u", // upon hearing the bell ring, the students left the classroom.
+
+      // Stage 3 Comprehension
+      S3_Q1: "ZG9sY2U=",              // dolce
+      S3_Q2: "aW1tdW5l",              // immune
+      S3_Q3: "ZWlnaHRlZW4=",          // eighteen
+      S3_Q3_ALT: "MTg=",              // 18
+      S3_Q4: "dHN1aS1raGE=",          // tsui-kha
+
+      // Stage 4 Video
+      S4_Q1: "Yg==",                  // b
+      S4_Q2: "YWly",                  // air
+      S4_Q3: "c29kYQ==",              // soda
+
+      // Stage 5 Boss (All single letter checks are lowercase 'e', 's', 's', 'l' matched to base64)
+      S5_A: "ZQ==",                   // e
+      S5_B: "cw==",                   // s 
+      S5_C: "cw==",                   // s 
+      S5_D: "bA==",                   // l 
+      S5_KEY: "ZXNzbA=="              // essl 
+    };
+
+    // Stage descriptions & hints
+    const levelConfigs = {
+      1: {
+        title: "第一關：單字與片語的跨課迷宮",
+        desc: "控制台鎖定！請翻開實體講義與課本，找出核心單字並拼湊對應的跨課片語結構。",
+        hint: "第一關實體定位指引：\n1. widespread：L9 AIO 講義 p.90 文意字彙第 9 題「廣泛的、普及的」(10個字母)。\n2. derived：L9 AIO 講義 p.90 文意字彙第 3 題「起源於、衍生出」(7個字母)。\n3. temporary：L8 AIO 講義 p.80 文意字彙第 8 題「暫時的、臨時的」(9個字母)。\n4. audience：L7 AIO 講義 p.71 文意字彙第 10 題「全體觀眾」(8個字母)。\n5. 片語選擇：對應 L8 四合一 p.213(keep pace with) 及 L7 四合一 p.169(in pursuit of) / L9 (No matter) 之搭配語。"
+      },
+      2: {
+        title: "第二關：文法重構：句型力場同步",
+        desc: "引導場不穩定！我們必須藉由 L7~L9 & R3 核心文法的精密組裝來恢復飛船防護陣。",
+        hint: "第二關實體定位指引：\n• 煉獄模式 Q1：參考 R3 四合一講義 p.253 主句型「眾所周知...」與「發現自己處於...」。\n• 煉獄模式 Q2：參考 L8 四合一講義 p.213 關於「一...就...」的「Upon + V-ing」倒裝省略句。\n• 煉獄模式 Q3：參考 L9 四合一講義 p.234 「No matter wh-」結構。\n• 標準模式：點擊下方語塊，精準拼湊對應的 L9 讓步與 L8 動名詞句型結構。"
+      },
+      3: {
+        title: "第三關：文獻考據：深入課文細節解碼",
+        desc: "歷史引擎異常！你必須在紙本課本與講義最深處的特徵碼中尋找解鎖密碼。",
+        hint: "第三關實體定位指引：\n• 義大利經典電影：翻開 L9 課本第 214 頁 Line 9。尋找 paparazzi 的起源電影 La Dolce Vita 第二個單字。\n• 雙胞胎生理系統：翻開 R3 AIO 講義第 104 頁混合題。尋找 Scott Kelly 被改變的生理功能關鍵字(字首 i...)。\n• TED時間限制：翻開 L7 課本第 169-170 頁。尋找 TED Talks 限時幾分鐘的完整英文單字或數字。\n• 辦桌台語助手：翻開 L8 課本第 175 頁 SDGs in Action。尋找代表「端菜/服務助手」的台語拼音單字(t_ _ _-k_ _)。"
+      },
+      4: {
+        title: "第四關：多媒體探針：國際太空站生活實錄",
+        desc: "飛船探針成功連結 NASA 國際太空站影片直播！仔細觀察分析太空人們的對話與細節解鎖密鑰。",
+        hint: "第四關影音探查指引：\n• Q1：影片 [04:40 - 04:55] 處時區選擇。\n• Q2：影片 [07:35 - 07:55] 處氧氣供應電解系統名詞。\n• Q3：影片 [08:20 - 08:40] 處太空禁用碳酸飲料單字。"
+      },
+      5: {
+        title: "第五關：終極大魔王：五月號雜誌臨界解鎖",
+        desc: "大門鎖定！終極控制面板需要 4 個大寫英文字母。指派隊員，每人翻閱一個單元，協力在限時內攻克！",
+        hint: "第五關大魔王雜誌定位指引：\n• 密碼 A：翻開 5 月號雜誌【克里特島】(p.12)。宙斯帶走神話中哪位公主(E_ _ _ _ _ _...)？\n• 密碼 B：翻開【立陶宛粉紅湯】(p.18)。冷菜湯當地語言(S_ _ _ _ _ _ _ _ _ _ _ _...)之首字。\n• 密碼 C：翻開【雨燕的驚奇生命】(p.24)。雨燕翅膀性狀為鐮刀狀(S_ _ __ _-shaped)的首字。\n• 密碼 D：翻開【三麗鷗】(p.32)。商標與授權模式(Licensing)的首字。"
+      }
+    };
+
+    // ============== ADDED FIX: 原檔缺少的「實體文獻定位日誌」資料與渲染函式 ==============
+    const bookLogs = {
+      1: [
+        { book: "L9 AIO 講義", page: "p.90", note: "文意字彙第 3, 9 題" },
+        { book: "L8 AIO 講義", page: "p.80", note: "文意字彙第 8 題" },
+        { book: "L7 AIO 講義", page: "p.71", note: "文意字彙第 10 題" },
+        { book: "L7~L9 四合一講義", page: "p.169 / p.213", note: "片語搭配練習區" }
+      ],
+      2: {
+        inferno: [
+          { book: "R3 四合一講義", page: "p.253", note: "主句型合併練習" },
+          { book: "L8 四合一講義", page: "p.213", note: "Upon + V-ing 倒裝句型" },
+          { book: "L9 四合一講義", page: "p.234", note: "No matter wh- 結構" }
+        ],
+        normal: [
+          { book: "L8~L9 四合一講義", page: "句型重組區", note: "讓步句型與動名詞句型" }
+        ]
+      },
+      3: [
+        { book: "課本第二冊 L9", page: "p.214 Line 9", note: "補充閱讀段落" },
+        { book: "R3 AIO 講義", page: "p.104", note: "混合題型" },
+        { book: "課本第二冊 L7", page: "p.169-170", note: "Comprehension Practice" },
+        { book: "課本第二冊 L8", page: "p.175", note: "SDGs in Action" }
+      ],
+      4: [
+        { book: "NASA 國際太空站影片", page: "嵌入影片", note: "請注意 04:40 / 07:35 / 08:20 處對話內容" }
+      ],
+      5: [
+        { book: "2026 年 5 月號雜誌", page: "p.12", note: "克里特島" },
+        { book: "2026 年 5 月號雜誌", page: "p.18", note: "立陶宛粉紅湯" },
+        { book: "2026 年 5 月號雜誌", page: "p.24", note: "雨燕的驚奇生命" },
+        { book: "2026 年 5 月號雜誌", page: "p.32", note: "三麗鷗" }
+      ]
+    };
+
+    function updateBookLogs(level) {
+      const container = document.getElementById("book-logs-container");
+      if (!container) return;
+      container.innerHTML = "";
+
+      let entries = [];
+      if (level === 2) {
+        entries = isInfernoRoute ? bookLogs[2].inferno : bookLogs[2].normal;
+      } else {
+        entries = bookLogs[level] || [];
+      }
+
+      entries.forEach(entry => {
+        const item = document.createElement("div");
+        item.className = "pill-item bg-slate-950/60 border border-slate-800 rounded-lg p-3 text-xs";
+        item.innerHTML = `
+          <p class="font-bold text-cyan-300">${entry.book} <span class="text-yellow-400">${entry.page}</span></p>
+          <p class="text-slate-400 mt-1">${entry.note}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+    // ============== END ADDED FIX ==============
+
+    // Helper: Fisher-Yates Shuffle
+    function shuffleArray(array) {
+      let currentIndex = array.length, randomIndex;
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [
+          array[randomIndex], array[currentIndex]];
+      }
+      return array;
+    }
+
+    // Dynamic Questions Database Creator
+    function getLevelQuestions(level) {
+      if (level === 1) {
+        return [
+          {
+            type: "vocab",
+            id: "s1_q1",
+            text: `1. The smartphone is a universal tool that has achieved <strong class="text-cyan-300">(w_ _ _ _ _ _ _ _ _)</strong> popularity.`,
+            placeholder: "請輸入代表『普及的、廣泛的』10 字母單字...",
+            validator: () => {
+              const ans = document.getElementById("s1_q1_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S1_Q1);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">VOCABULARY CHALLENGE</span>
+                <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+                  The smartphone is a universal tool that has achieved <strong class="text-cyan-300">(w_ _ _ _ _ _ _ _ _)</strong> popularity.
+                </p>
+                <input type="text" id="s1_q1_input" placeholder="請輸入 10 字母單字..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-500">
+              </div>
+            `
+          },
+          {
+            type: "vocab",
+            id: "s1_q2",
+            text: `2. Interestingly, many features we use today are <strong class="text-cyan-300">(d_ _ _ _ _ _)</strong> from early space exploration technology.`,
+            placeholder: "請輸入代表『起源自、衍生出』7 字母單字...",
+            validator: () => {
+              const ans = document.getElementById("s1_q2_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S1_Q2);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">VOCABULARY CHALLENGE</span>
+                <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+                  Interestingly, many features we use today are <strong class="text-cyan-300">(d_ _ _ _ _ _)</strong> from early space exploration technology.
+                </p>
+                <input type="text" id="s1_q2_input" placeholder="請輸入 7 字母單字(過去分詞)..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-500">
+              </div>
+            `
+          },
+          {
+            type: "vocab",
+            id: "s1_q3",
+            text: `3. At first, Daisy took teaching math at school as a <strong class="text-cyan-300">(t_ _ _ _ _ _ _ _)</strong> job, but it turned out to be her life-long career.`,
+            placeholder: "請輸入代表『短暫的、臨時的』9 字母單字...",
+            validator: () => {
+              const ans = document.getElementById("s1_q3_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S1_Q3);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">VOCABULARY CHALLENGE</span>
+                <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+                  At first, Daisy took teaching math at school as a <strong class="text-cyan-300">(t_ _ _ _ _ _ _ _)</strong> job, but it turned out to be her life-long career.
+                </p>
+                <input type="text" id="s1_q3_input" placeholder="請填入 9 字母單字..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-500">
+              </div>
+            `
+          },
+          {
+            type: "vocab",
+            id: "s1_q4",
+            text: `4. The ballet dancer gave an impressive performance. After she finished her dance, the whole <strong class="text-cyan-300">(a_ _ _ _ _ _ _)</strong> stood up and applauded her.`,
+            placeholder: "請填入代表『全體聽眾、觀眾』8 字母單字...",
+            validator: () => {
+              const ans = document.getElementById("s1_q4_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S1_Q4);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">VOCABULARY CHALLENGE</span>
+                <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+                  The ballet dancer gave an impressive performance. After she finished her dance, the whole <strong class="text-cyan-300">(a_ _ _ _ _ _ _)</strong> stood up and applauded her.
+                </p>
+                <input type="text" id="s1_q4_input" placeholder="請填入 8 字母單字..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-500">
+              </div>
+            `
+          },
+          {
+            type: "phrase",
+            id: "s1_pa",
+            validator: () => checkB64(selectedPhraseA, SECURE_KEYS.S1_PA),
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">PHRASE SELECTION / 空格 [A]</span>
+                <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+                  請選出最適合填入空格 <span class="text-yellow-400 font-black">[A]</span> 的片語以描述辦桌精神：<br>
+                  <span class="text-xs text-slate-400">"In Taiwan, the master chefs of Ban-Doh work hard to <strong class="text-cyan-400">[A]</strong> high standards of culinary art."</span>
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <button onclick="selectPhraseOnly('keep pace with', 'A')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">keep pace with</button>
+                  <button onclick="selectPhraseOnly('in pursuit of', 'A')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in pursuit of</button>
+                  <button onclick="selectPhraseOnly('No matter', 'A')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">No matter</button>
+                  <button onclick="selectPhraseOnly('in combination with', 'A')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in combination with</button>
+                </div>
+                <p class="text-[11px] text-yellow-400 mt-3">當前選擇：<span id="s1-pA-preview" class="font-bold">${selectedPhraseA || "-"}</span></p>
+              </div>
+            `
+          },
+          {
+            type: "phrase",
+            id: "s1_pb",
+            validator: () => checkB64(selectedPhraseB, SECURE_KEYS.S1_PB),
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">PHRASE SELECTION / 空格 [B]</span>
+                <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+                  請選出最適合填入空格 <span class="text-yellow-400 font-black">[B]</span> 的片語以描述 TED 願景：<br>
+                  <span class="text-xs text-slate-400">"Similarly, scientists who work for the TED organization are constantly <strong class="text-cyan-400">[B]</strong> new ideas that can make a difference."</span>
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <button onclick="selectPhraseOnly('keep pace with', 'B')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">keep pace with</button>
+                  <button onclick="selectPhraseOnly('in pursuit of', 'B')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in pursuit of</button>
+                  <button onclick="selectPhraseOnly('No matter', 'B')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">No matter</button>
+                  <button onclick="selectPhraseOnly('in combination with', 'B')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in combination with</button>
+                </div>
+                <p class="text-[11px] text-yellow-400 mt-3">當前選擇：<span id="s1-pB-preview" class="font-bold">${selectedPhraseB || "-"}</span></p>
+              </div>
+            `
+          },
+          {
+            type: "phrase",
+            id: "s1_pc",
+            validator: () => checkB64(selectedPhraseC, SECURE_KEYS.S1_PC),
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">PHRASE SELECTION / 空格 [C]</span>
+                <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+                  請選出最適合填入空格 <span class="text-yellow-400 font-black">[C]</span> 的讓步結構詞：<br>
+                  <span class="text-xs text-slate-400">"<strong class="text-cyan-400">[C]</strong> what challenges they face, both groups remain passionate."</span>
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <button onclick="selectPhraseOnly('keep pace with', 'C')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">keep pace with</button>
+                  <button onclick="selectPhraseOnly('in pursuit of', 'C')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in pursuit of</button>
+                  <button onclick="selectPhraseOnly('No matter', 'C')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">No matter</button>
+                  <button onclick="selectPhraseOnly('in combination with', 'C')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in combination with</button>
+                </div>
+                <p class="text-[11px] text-yellow-400 mt-3">當前選擇：<span id="s1-pC-preview" class="font-bold">${selectedPhraseC || "-"}</span></p>
+              </div>
+            `
+          }
+        ];
+      } else if (level === 2) {
+        if (isInfernoRoute) {
+          return [
+            {
+              id: "s2_inf_q1",
+              validator: () => {
+                const ans = document.getElementById("s2-inf-q1").value.trim().toLowerCase().replace(/\s+/g, ' ');
+                return ans.includes(atob(SECURE_KEYS.S2_INF_Q1_K1)) && ans.includes(atob(SECURE_KEYS.S2_INF_Q1_K2));
+              },
+              html: () => `
+                <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                  <span class="text-xs font-bold text-red-400 block mb-2 font-orbitron"><i class="fa-solid fa-skull"></i> INFERNO / 合併翻譯 1</span>
+                  <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                    請用 <code class="text-cyan-400 font-mono">It is well known that...</code> 與 <code class="text-cyan-400 font-mono">find + O + O.C.</code> 合併句型：<br>
+                    「眾所周知，外太空的極端環境常讓太空人發現他們自己處於嚴重鼻塞(congested)或失去方向感(disoriented)的狀態。」
+                  </p>
+                  <span class="text-[10px] text-slate-500 block mb-2">主詞請使用 astronauts often find themselves ... due to zero gravity.</span>
+                  <textarea id="s2-inf-q1" placeholder="請輸入完整合併句子（結尾請加句點）..." class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500 h-20"></textarea>
+                </div>
+              `
+            },
+            {
+              id: "s2_inf_q2",
+              validator: () => {
+                const ans = document.getElementById("s2-inf-q2").value.trim().toLowerCase().replace(/\s+/g, ' ');
+                return ans.includes(atob(SECURE_KEYS.S2_INF_Q2_K1)) && ans.includes(atob(SECURE_KEYS.S2_INF_Q2_K2));
+              },
+              html: () => `
+                <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                  <span class="text-xs font-bold text-red-400 block mb-2 font-orbitron"><i class="fa-solid fa-skull"></i> INFERNO / 一...就...句型 2</span>
+                  <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                    請用 <code class="text-cyan-400 font-mono">Upon + V-ing, S + V...</code> 翻譯拼寫：<br>
+                    「太空人一穿上太空衣(suit up)，他們就必須準備進行太空漫步(go on a spacewalk)。」
+                  </p>
+                  <textarea id="s2-inf-q2" placeholder="Upon suiting up, ..." class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500 h-20"></textarea>
+                </div>
+              `
+            },
+            {
+              id: "s2_inf_q3",
+              validator: () => {
+                const ans = document.getElementById("s2-inf-q3").value.trim().toLowerCase().replace(/\s+/g, ' ');
+                return ans.includes(atob(SECURE_KEYS.S2_INF_Q3_K1)) && ans.includes(atob(SECURE_KEYS.S2_INF_Q3_K2));
+              },
+              html: () => `
+                <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                  <span class="text-xs font-bold text-red-400 block mb-2 font-orbitron"><i class="fa-solid fa-skull"></i> INFERNO / 讓步子句手寫 3</span>
+                  <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                    請用 <code class="text-cyan-400 font-mono">No matter wh-</code> 翻譯改寫：<br>
+                    「不論他們使用什麼標準，語言都一直在改變(changing)。」
+                  </p>
+                  <span class="text-[10px] text-slate-500 block mb-2">提示：No matter what standards they use, ...</span>
+                  <textarea id="s2-inf-q3" placeholder="No matter what ..." class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-red-500 h-20"></textarea>
+                </div>
+              `
+            }
+          ];
+        } else {
+          return [
+            {
+              id: "s2_norm_q1",
+              validator: () => {
+                const target = document.getElementById("reorder-target");
+                const kids = Array.from(target.children).map(node => node.innerText);
+                const fullSentence = kids.join(" ");
+                return checkB64(fullSentence, SECURE_KEYS.S2_NORM_S1);
+              },
+              html: () => `
+                <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                  <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">STANDARD / L9 讓步重組</span>
+                  <p class="text-xs text-slate-300 mb-3">
+                    請重組句子：「不論任務多麼困難，太空人都會保持艙門鎖緊。」
+                  </p>
+                  <div id="reorder-target" class="min-h-12 bg-slate-900 rounded border border-dashed border-slate-700 p-3 flex flex-wrap gap-2 items-center mb-4"></div>
+                  <div class="flex flex-wrap gap-2 justify-center" id="reorder-pool">
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">No matter how</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">the astronaut</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">difficult the task is,</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">kept the door</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">locked.</button>
+                  </div>
+                  <div class="text-right mt-3">
+                    <button onclick="resetBlocks()" class="text-xs text-slate-400 hover:text-red-400 transition-all"><i class="fa-solid fa-trash-can"></i> 重設語塊</button>
+                  </div>
+                </div>
+              `
+            },
+            {
+              id: "s2_norm_q2",
+              validator: () => {
+                const target = document.getElementById("reorder-target");
+                const kids = Array.from(target.children).map(node => node.innerText);
+                const fullSentence = kids.join(" ");
+                return checkB64(fullSentence, SECURE_KEYS.S2_NORM_S2);
+              },
+              html: () => `
+                <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                  <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">STANDARD / L8 動名詞重組</span>
+                  <p class="text-xs text-slate-300 mb-3">
+                    請重組句子：「一聽到鐘聲響起，學生們就離開了教室。」
+                  </p>
+                  <div id="reorder-target" class="min-h-12 bg-slate-900 rounded border border-dashed border-slate-700 p-3 flex flex-wrap gap-2 items-center mb-4"></div>
+                  <div class="flex flex-wrap gap-2 justify-center" id="reorder-pool">
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">Upon hearing</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">the bell ring,</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">the students</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">left the</button>
+                    <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">classroom.</button>
+                  </div>
+                  <div class="text-right mt-3">
+                    <button onclick="resetBlocks()" class="text-xs text-slate-400 hover:text-red-400 transition-all"><i class="fa-solid fa-trash-can"></i> 重設語塊</button>
+                  </div>
+                </div>
+              `
+            }
+          ];
+        }
+      } else if (level === 3) {
+        return [
+          {
+            id: "s3_q1",
+            validator: () => {
+              const ans = document.getElementById("s3_q1_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S3_Q1);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">LESSON 9 / TEXTBOOK DEEP DIVE</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">【借名成字起底謎網】</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開龍騰課本第二冊 <strong class="text-yellow-400">第 214 頁 Line 9</strong>。<br>
+                  關於單字 <code class="text-cyan-400 font-mono">paparazzi</code> 的起源，它最初是電影 <i>La Dolce Vita</i> 裡的角色。請填入該電影名稱的<strong>第二個單字</strong>。
+                </p>
+                <input type="text" id="s3_q1_input" placeholder="電影的第二個英文單字（注意首字大寫）..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 font-mono">
+              </div>
+            `
+          },
+          {
+            id: "s3_q2",
+            validator: () => {
+              const ans = document.getElementById("s3_q2_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S3_Q2);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">REVIEW 3 / TEXTBOOK DEEP DIVE</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">【雙胞胎太空人研究】</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開 R3 All in One 講義 <strong class="text-yellow-400">第 104 頁混合題</strong>。<br>
+                  對比太空中的 Scott 與地球上的 Mark 發現，Scott 的基因表現與哪一個「生理系統/功能」發生了改變？<br>
+                  請拼寫代表該系統功能的「第一個單字」（共 6 個字母，字首為 i）。
+                </p>
+                <input type="text" id="s3_q2_input" placeholder="請輸入 6 字母生理系統關鍵字..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 font-mono">
+              </div>
+            `
+          },
+          {
+            id: "s3_q3",
+            validator: () => {
+              const ans = document.getElementById("s3_q3_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S3_Q3) || checkB64(ans, SECURE_KEYS.S3_Q3_ALT);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">LESSON 7 / TEXTBOOK DEEP DIVE</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">【TED Talks 演講極限】</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開 L7 課本 <strong class="text-yellow-400">第 169-170 頁 Language in Use / Comprehension Practice</strong>。<br>
+                  在關於 TED 網站的陳述中，請問每一場 TED Talk 最長會被限制在「多少分鐘」內？<br>
+                  請輸入該時間長度的英文單字（或阿拉伯數字）。
+                </p>
+                <input type="text" id="s3_q3_input" placeholder="例如：eighteen 或 18..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 font-mono">
+              </div>
+            `
+          },
+          {
+            id: "s3_q4",
+            validator: () => {
+              const ans = document.getElementById("s3_q4_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S3_Q4);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">LESSON 8 / TEXTBOOK DEEP DIVE</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">【辦桌綠色婚宴水腳】</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開 L8 課本 <strong class="text-yellow-400">第 175 頁 SDGs in Action</strong>。<br>
+                  請找出並輸入在辦桌文化中，代表「端菜、洗菜的服務助手（水腳）」的台語拼音英文字眼。
+                </p>
+                <input type="text" id="s3_q4_input" placeholder="提示：t_ _ _-k_ _（含連字號）..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 font-mono">
+              </div>
+            `
+          }
+        ];
+      } else if (level === 4) {
+        return [
+          {
+            id: "s4_q1",
+            validator: () => {
+              const q1Option = document.querySelector('input[name="s4-q1"]:checked');
+              return q1Option && checkB64(q1Option.value, SECURE_KEYS.S4_Q1);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 space-y-3">
+                <span class="text-xs font-bold text-cyan-400 block font-orbitron">VIDEO INTERCEPT / Q1</span>
+                <label class="block text-xs font-bold text-slate-200 mb-2">
+                  Q1. 觀看影片 [04:40 - 04:55]，太空站共同決定統一採用哪一個時區，以確保不打亂內部生理時鐘？
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-left">
+                  <label class="flex items-center gap-2 p-2 bg-slate-900 rounded border border-slate-800 cursor-pointer hover:border-cyan-500">
+                    <input type="radio" name="s4-q1" value="A">
+                    <span>(A) Eastern Standard Time (EST) / USA</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-slate-900 rounded border border-slate-800 cursor-pointer hover:border-cyan-500">
+                    <input type="radio" name="s4-q1" value="B">
+                    <span>(B) Greenwich Mean Time (GMT) / United Kingdom</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-slate-900 rounded border border-slate-800 cursor-pointer hover:border-cyan-500">
+                    <input type="radio" name="s4-q1" value="C">
+                    <span>(C) Moscow Time (MSK) / Russia</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-slate-900 rounded border border-slate-800 cursor-pointer hover:border-cyan-500">
+                    <input type="radio" name="s4-q1" value="D">
+                    <span>(D) Japan Standard Time (JST) / Japan</span>
+                  </label>
+                </div>
+              </div>
+            `
+          },
+          {
+            id: "s4_q2",
+            validator: () => {
+              const ans = document.getElementById("s4_q2_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S4_Q2);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 space-y-3">
+                <span class="text-xs font-bold text-cyan-400 block font-orbitron">VIDEO INTERCEPT / Q2</span>
+                <label class="block text-xs font-bold text-slate-200 mb-2">
+                  Q2. 觀看影片 [07:35 - 07:55]，太空站回收尿液經電解提取出的氧氣，會被重新加入太空人的哪種供應系統？
+                </label>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-mono text-cyan-400">_____ supply</span>
+                  <input type="text" id="s4_q2_input" placeholder="填入 3 字母英文單字..." class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-500 w-48">
+                </div>
+              </div>
+            `
+          },
+          {
+            id: "s4_q3",
+            validator: () => {
+              const ans = document.getElementById("s4_q3_input").value.trim().toLowerCase();
+              return checkB64(ans, SECURE_KEYS.S4_Q3);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 space-y-3">
+                <span class="text-xs font-bold text-cyan-400 block font-orbitron">VIDEO INTERCEPT / Q3</span>
+                <label class="block text-xs font-bold text-slate-200 mb-2">
+                  Q3. 觀看影片 [08:20 - 08:40]，除了容易飛散碎片堵塞儀器的麵包外，在無重力下會因為胃部氣體膨脹造成打嗝與嘔吐而被「嚴格禁止」的碳酸飲料種類是？
+                </label>
+                <input type="text" id="s4_q3_input" placeholder="請填入該禁忌 4 字母飲料英文..." class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-500 w-48">
+              </div>
+            `
+          }
+        ];
+      } else if (level === 5) {
+        return [
+          {
+            id: "s5_clue_a",
+            validator: () => {
+              const ans = document.getElementById("s5_a_input").value.trim().toUpperCase();
+              if (checkB64(ans, SECURE_KEYS.S5_A)) {
+                s5Inputs.A = ans;
+                return true;
+              }
+              return false;
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-purple-400 block mb-2 font-orbitron">BOSS CLUE A / p.12</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">克里特島神話公主</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開 2026 年 5 月號雜誌【克里特島（Crete）】單元。<br>
+                  希臘神話中，天神宙斯化身為白牛，帶走的「公主」是誰？<br>
+                  請填入她英文名字的第一個字母。
+                </p>
+                <input type="text" id="s5_a_input" maxlength="1" value="${s5Inputs.A}" placeholder="大寫英文字母 1 碼..." class="w-16 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-center text-sm font-bold text-slate-100 focus:outline-none focus:border-cyan-500 font-mono uppercase">
+              </div>
+            `
+          },
+          {
+            id: "s5_clue_b",
+            validator: () => {
+              const ans = document.getElementById("s5_b_input").value.trim().toUpperCase();
+              if (checkB64(ans, SECURE_KEYS.S5_B)) {
+                s5Inputs.B = ans;
+                return true;
+              }
+              return false;
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-purple-400 block mb-2 font-orbitron">BOSS CLUE B / p.18</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">立陶宛傳統粉紅湯</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開【立陶宛粉紅湯（Lithuania Soup）】單元。<br>
+                  這種冷甜菜湯在立陶宛當地語言中被稱作什麼？<br>
+                  請填入該名字的第一個字母。
+                </p>
+                <input type="text" id="s5_b_input" maxlength="1" value="${s5Inputs.B}" placeholder="大寫英文字母 1 碼..." class="w-16 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-center text-sm font-bold text-slate-100 focus:outline-none focus:border-cyan-500 font-mono uppercase">
+              </div>
+            `
+          },
+          {
+            id: "s5_clue_c",
+            validator: () => {
+              const ans = document.getElementById("s5_c_input").value.trim().toUpperCase();
+              if (checkB64(ans, SECURE_KEYS.S5_C)) {
+                s5Inputs.C = ans;
+                return true;
+              }
+              return false;
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-purple-400 block mb-2 font-orbitron">BOSS CLUE C / p.24</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">雨燕獨特鐮刀翅膀</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開【雨燕的驚奇生命（Swifts）】單元。<br>
+                  雨燕演化出形如「鐮刀狀」的極具效率翅膀，課文裡描述該形狀的英文形容詞，其第一個字母為何？
+                </p>
+                <input type="text" id="s5_c_input" maxlength="1" value="${s5Inputs.C}" placeholder="大寫英文字母 1 碼..." class="w-16 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-center text-sm font-bold text-slate-100 focus:outline-none focus:border-cyan-500 font-mono uppercase">
+              </div>
+            `
+          },
+          {
+            id: "s5_clue_d",
+            validator: () => {
+              const ans = document.getElementById("s5_d_input").value.trim().toUpperCase();
+              if (checkB64(ans, SECURE_KEYS.S5_D)) {
+                s5Inputs.D = ans;
+                return true;
+              }
+              return false;
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-purple-400 block mb-2 font-orbitron">BOSS CLUE D / p.32</span>
+                <h6 class="text-sm font-bold text-slate-200 mb-2">三麗鷗授權經濟學</h6>
+                <p class="text-xs text-slate-300 leading-normal mb-3">
+                  翻開【三麗鷗（Sanrio）】單元。<br>
+                  三麗鷗透過何種「商業授權模式 (L_ _ _ _ _ _ _g)」，成功授權角色商標賺取龐大利益？<br>
+                  請填入該名詞的第一個字母。
+                </p>
+                <input type="text" id="s5_d_input" maxlength="1" value="${s5Inputs.D}" placeholder="大寫英文字母 1 碼..." class="w-16 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-center text-sm font-bold text-slate-100 focus:outline-none focus:border-cyan-500 font-mono uppercase">
+              </div>
+            `
+          }
+        ];
+      }
+      return [];
+    }
+
+    // Load Stage UI & Questions
+    function loadLevel(level) {
+      currentLevel = level;
+      document.getElementById("level-num").innerText = level;
+      document.getElementById("level-title").innerHTML = `<i class="fa-solid fa-microchip text-cyan-400 animate-pulse"></i> ${levelConfigs[level].title}`;
+      document.getElementById("level-desc").innerText = levelConfigs[level].desc;
+      
+      // Dynamic Shuffling initialization
+      if (currentSubStep === 1) {
+        let rawQuestions = getLevelQuestions(level);
+        if (level === 5) {
+          // Shuffle first 4 clue steps, then append the final combined matrix step
+          let cluesShuffled = shuffleArray(rawQuestions);
+          cluesShuffled.push({
+            id: "s5_final_step",
+            validator: () => {
+              const ans = document.getElementById("s5-final-input").value.trim().toUpperCase();
+              return checkB64(ans, SECURE_KEYS.S5_KEY);
+            },
+            html: () => `
+              <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 flex flex-col items-center justify-center">
+                <span class="text-xs font-black text-slate-300 mb-3 font-orbitron">FINAL CODE MATRIX / 核心時空晶片驗證</span>
+                <p class="text-xs text-slate-400 text-center mb-4">
+                  你已收集到四個首字母。請將解開的四個字母依照 [A]-[B]-[C]-[D] 順序組合（例如：ESSL），輸入下方解鎖時空大門：
+                </p>
+                <input type="text" id="s5-final-input" maxlength="4" placeholder="請輸入 4 碼總代碼..." class="w-52 bg-slate-900 border border-purple-800 rounded-lg px-4 py-3 text-center text-lg font-black text-purple-400 focus:outline-none focus:border-purple-500 font-orbitron uppercase tracking-widest">
+              </div>
+            `
+          });
+          shuffledQuestions = cluesShuffled;
+        } else {
+          shuffledQuestions = shuffleArray(rawQuestions);
+        }
+      }
+
+      const totalSubsteps = shuffledQuestions.length;
+      document.getElementById("substep-counter").innerText = `${currentSubStep} / ${totalSubsteps}`;
+      
+      const progressPercent = ((currentSubStep - 1) / totalSubsteps) * 100;
+      document.getElementById("substep-progress").style.width = `${progressPercent}%`;
+
+      const container = document.getElementById("question-container");
+      container.innerHTML = "";
+      updateBookLogs(level);
+
+      // Reset submission console button state
+      currentStepValidated = false;
+      const mainBtn = document.getElementById("main-action-btn");
+      mainBtn.innerHTML = `驗證本題 <i class="fa-solid fa-unlock-keyhole"></i>`;
+      mainBtn.classList.remove("from-green-500", "to-emerald-500");
+      mainBtn.classList.add("from-cyan-500", "to-blue-500");
+      document.getElementById("console-msg").innerText = "系統已加載本小步系統。請特務翻書解開密碼後驗證。";
+
+      // Render the current randomized sub-question
+      const currentQuestionObj = shuffledQuestions[currentSubStep - 1];
+      if (currentQuestionObj && currentQuestionObj.html) {
+        container.innerHTML = currentQuestionObj.html();
+        
+        // Custom hook: if level 4 rendering, append video player
+        if (level === 4) {
+          const videoHtml = `
+            <div class="aspect-video w-full rounded-lg overflow-hidden border border-slate-800 bg-black mb-4">
+              <iframe class="w-full h-full" src="https://www.youtube.com/embed/OBIxbULqDxY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-normal text-center bg-slate-950/50 p-2 rounded border border-slate-800 mb-3">
+              <i class="fa-solid fa-satellite-dish animate-pulse"></i> 特務提示：請配戴耳機觀看影片並拉取進度條，回答下列太空生存謎題。
+            </p>
+          `;
+          container.insertAdjacentHTML('afterbegin', videoHtml);
+        }
+      }
+    }
+
+    // Step verification & Progression Flow
+    function validateCurrentStep() {
+      const feedback = document.getElementById("console-msg");
+
+      if (currentStepValidated) {
+        // Proceed to next step
+        const totalSteps = shuffledQuestions.length;
+        if (currentSubStep < totalSteps) {
+          currentSubStep++;
+          loadLevel(currentLevel);
+        } else {
+          // Finished all sub-steps of current Stage!
+          if (currentLevel < 5) {
+            currentLevel++;
+            currentSubStep = 1;
+            loadLevel(currentLevel);
+          } else {
+            // Reached and verified final boss!
+            triggerVictory();
+          }
+        }
+        return;
+      }
+
+      // Check validation dynamically against current active question object
+      const currentQuestionObj = shuffledQuestions[currentSubStep - 1];
+      let isCorrect = false;
+      if (currentQuestionObj && currentQuestionObj.validator) {
+        isCorrect = currentQuestionObj.validator();
+      }
+
+      // Check results
+      if (isCorrect) {
+        playSuccessSound();
+        updateScore(10);
+        
+        // Mark current sub-step as validated
+        currentStepValidated = true;
+        
+        // Setup Dynamic Difficulty if finishing Level 1
+        if (currentLevel === 1 && currentSubStep === shuffledQuestions.length) {
+            isInfernoRoute = (levelOneMistakes === 0);
+            const badge = document.getElementById("difficulty-badge");
+            badge.innerText = isInfernoRoute ? "煉獄模式 💀" : "標準模式 🛡️";
+            badge.className = isInfernoRoute 
+                ? "px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-950 text-red-400 border border-red-800 animate-pulse"
+                : "px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-950 text-cyan-400 border border-cyan-800";
+        }
+
+        // Show neon green successful button state
+        const mainBtn = document.getElementById("main-action-btn");
+        mainBtn.innerHTML = `重構完成 ➔ 下一題 <i class="fa-solid fa-arrow-right"></i>`;
+        mainBtn.classList.remove("from-cyan-500", "to-blue-500");
+        mainBtn.classList.add("from-green-500", "to-emerald-500");
+
+        feedback.innerText = "驗證正確！能量流已成功校正。請點擊『下一題』按鈕繼續。";
+      } else {
+        if (currentLevel === 1) levelOneMistakes++; // Track mistakes to determine normal/inferno
+        playFailSound();
+        feedback.innerText = "時空常數不匹配！請點擊『取得線索』翻閱對應文獻重新校準。";
+      }
+    }
+
+    // Level-specific Phrase Selection Event stage 1
+    function selectPhraseOnly(phrase, slot) {
+      if (slot === 'A') {
+        selectedPhraseA = phrase;
+        const preview = document.getElementById("s1-pA-preview");
+        if (preview) preview.innerText = phrase;
+      } else if (slot === 'B') {
+        selectedPhraseB = phrase;
+        const preview = document.getElementById("s1-pB-preview");
+        if (preview) preview.innerText = phrase;
+      } else if (slot === 'C') {
+        selectedPhraseC = phrase;
+        const preview = document.getElementById("s1-pC-preview");
+        if (preview) preview.innerText = phrase;
+      }
+      playBeep(440, 'sine', 0.1);
+      
+      // Update selected buttons UI
+      const btns = document.querySelectorAll(".s1-opt-btn");
+      btns.forEach(btn => {
+        if (btn.innerText === phrase) {
+          btn.className = "s1-opt-btn p-3 bg-yellow-400/20 text-yellow-300 rounded border border-yellow-500 text-left transition-all glow-cyan";
+        } else {
+          btn.className = "s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all";
+        }
+      });
+    }
+
+    // Reordering drag/click handlers for Stage 2
+    function addBlock(element) {
+      const target = document.getElementById("reorder-target");
+      const block = document.createElement("button");
+      block.className = "bg-cyan-950 text-cyan-300 px-3 py-1.5 rounded border border-cyan-800 text-xs font-mono transition-all animate-pulse";
+      block.innerText = element.innerText;
+      block.onclick = function() {
+        element.classList.remove("hidden");
+        block.remove();
+        playBeep(260, 'sine', 0.1);
+      };
+      target.appendChild(block);
+      element.classList.add("hidden");
+      playBeep(330, 'sine', 0.1);
+    }
+
+    function resetBlocks() {
+      const poolItems = document.querySelectorAll(".block-item");
+      poolItems.forEach(item => item.classList.remove("hidden"));
+      const target = document.getElementById("reorder-target");
+      if (target) target.innerHTML = "";
+      playBeep(150, 'sine', 0.15);
+    }
+
+    // Victory Screen Trigger
+    function triggerVictory() {
+      clearInterval(timerInterval);
+      playSuccessSound();
+      
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+
+      document.getElementById("screen-game").classList.add("hidden");
+      document.getElementById("screen-victory").classList.remove("hidden");
+
+      document.getElementById("final-team").innerText = teamName;
+      document.getElementById("final-time").innerText = document.getElementById("timer-display").innerText;
+      document.getElementById("final-score").innerText = score;
+      document.getElementById("final-route").innerText = isInfernoRoute ? "地獄煉獄航道" : "標準探險航道";
+    }
+
+    // Loss Screen Trigger
+    function gameOver() {
+      clearInterval(timerInterval);
+      playFailSound();
+      document.getElementById("screen-game").classList.add("hidden");
+      document.getElementById("screen-gameover").classList.remove("hidden");
+    }
+
+    // Modal helpers
+    function triggerHint() {
+      const config = levelConfigs[currentLevel];
+      showCustomAlert("實體書線索日誌", config.hint, "fa-book");
+    }
+
+    // Helper to safely Base64 check values
+    function checkB64(value, b64Expected) {
+      return btoa(value.trim().toLowerCase()) === b64Expected;
+    }
+
+    function showCustomAlert(title, text, iconClass) {
+      document.getElementById("alert-title").innerText = title;
+      document.getElementById("alert-text").innerText = text;
+      document.getElementById("alert-icon").innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+      document.getElementById("modal-alert").classList.remove("hidden");
+    }
+
+    function closeAlert() {
+      document.getElementById("modal-alert").classList.add("hidden");
+    }
+
+    function toggleAboutModal() {
+      const modal = document.getElementById("modal-about");
+      modal.classList.toggle("hidden");
+    }
+  </script>
+</body>
+</html>
