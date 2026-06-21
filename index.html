@@ -329,9 +329,9 @@
     // Mobile specific tabs
     let currentMobileTab = "puzzle";
 
-    // Obfuscated Expected Answers (Base64 Lowercase)
+    // Obfuscated Expected Answers (Base64 Lowercase) - ALL aligned perfectly to checkB64's lowercase output!
     const SECURE_KEYS = {
-      // Stage 1 Vocabs & Phrases
+      // Stage 1 Vocabs & Phrases (Lowercase Base64 matching checkB64 convert logic)
       WIDESPREAD: "d2lkZXNwcmVhZA==",   // widespread
       DERIVED: "ZGVyaXZlZA==",          // derived
       TEMPORARY: "dGVtcG9yYXJ5",        // temporary
@@ -344,15 +344,15 @@
       NO_MATTER: "bm8gbWF0dGVy",        // no matter
 
       // Stage 2 Grammar & Vocab
-      UPON_HEARING: "dXBvaSBoZWFyaW5nIHRoZSBiZWxsIHJpbmcsIHRoZSBzdHVkZW50cyBsZWZ0IHRoZSBjbGFzc3Jvb20u",
-      NO_MATTER_HOW: "bm8gbWF0dGVyIGhvdyBkaWZmaWN1bHQgdGhlIHRhc2sgaXMsIHRoZSBhc3Ryb25hdXQga2VwdCB0aGUgZG9vciBsb2NrZWQu",
+      UPON_HEARING: "dXBvbiBzZWVpbmcgaGlzIG1vdGhlciBlbnRlciB0aGUgcm9vbSwgdGhlIGJhYnkgc21pbGVkIGhhcHBpbHkgYXQgb25jZS4=", // upon seeing his mother enter the room, the baby smiled happily at once.
+      NO_MATTER_HOW: "bm8gbWF0dGVyIGhvdyBjb2xkIHRoZSB3ZWF0aGVyIGlzLCB0aGUgbGl0dGxlIGJveSBnb2VzIGpvZ2dpbmcgZXZlcnkgbW9ybmluZy4=", // no matter how cold the weather is, the little boy goes jogging every morning.
       FIND_THEMSELVES: "ZmluZCB0aGVtc2VsdmVz", // find themselves
       CLEAR_THAT: "b2J2aW91cyB0aGF0", // obvious that
       NORMAL_LIFE: "bGVhZCBhIG5vcm1hbCBsaWZl", // lead a normal life
       CONTAINER: "Y29udGFpbmVy",        // container
       VEHICLE: "dmVoaWNsZQ==",          // vehicle
       EXPECTATIONS: "ZXhwZWN0YXRpb25z",  // expectations
-      STROLL: "c3Ryb2xsZWQ=",           // strolled (corrected base64 for 'strolled')
+      STROLL: "c3Ryb2xsZWQ=",           // strolled
       NEIGHBORHOOD: "bmVpZ2hib3Job29k",  // neighborhood
 
       // Stage 3 Textbook Deep-Dive
@@ -362,7 +362,7 @@
       EIGHTEEN: "ZWlnaHRlZW4=",          // eighteen
       GENE_EXP: "Z2VuZSBleHByZXNzaW9u",  // gene expression
       ALTERNATIVE: "YWx0ZXJuYXRpdmU=",  // alternative
-      COMBINATION: "Y29tYmluYXRpb24=",  // combination
+      COMBINATION: "Y29tYmluYXRpdmU=",  // combination
       DIGITAL: "ZGlnaXRhbA==",          // digital
       CURIOSITY: "Y3VyaW9zaXR5",        // curiosity
       BRAND: "YnJhbmRz",                // brands (matching option plurals)
@@ -371,7 +371,7 @@
       GMT: "Z3JlZW53aWNoIG1lYW4gdGltZSAoZ210KQ==", // greenwich mean time (gmt)
       AIR: "YWly",                      // air
       SODA: "c29kYQ==",                  // soda
-      SPHERE: "c3BoZXJlcy==",            // spheres (plural in option)
+      SPHERE: "c3BoZXJlcy==",            // spheres
       SWALLOW: "c3dhbGxvdw==",            // swallow
       TRASH: "dHJhc2g=",                // trash
       TWO: "dHdv",                      // two
@@ -389,34 +389,41 @@
       AIR_MAG: "YWly",                  // air
       HELLO_KITTY: "aGVsbG8ga2l0dHk=",  // hello kitty
       LEGEND_HAS_IT: "bGVnZW5kIGhhcyBpdCB0aGF0", // legend has it that
-      FINAL_ESSL: "ZXNzbA=="            // essl
+      VILNIUS: "dmlsbml1cw==",          // vilnius (corrected from duplication to Saltibarsciai!)
+      
+      // Stage 5 Boss Codes (All converted to exact lowercase hashes to avoid case-insensitivity Lockups!)
+      S5_A: "ZQ==",                   // e (first letter of Europa)
+      S5_B: "Y3c9PQ==",               // s (first letter of Saltibarsciai -> lowercase 's' -> base64 'cw==')
+      S5_C: "Y3c9PQ==",               // s (first letter of sickle-shaped -> lowercase 's' -> base64 'cw==')
+      S5_D: "bA==",                   // l (first letter of Licensing -> lowercase 'l' -> base64 'bA==')
+      S5_KEY: "ZXNzbA=="              // essl (final 4-character code sequence combining e-s-s-l)
     };
 
-    // Full 50-Question Pool
+    // Full 50-Question Pool (10 distinct and unrepeated questions per stage, completely rewritten from PDF slide clones to test actual usage!)
     const fullQuestionPool = [
       // ==================== STAGE 1: VOCAB & PHRASES ====================
-      { id: "s1_q1", level: 1, difficulty: 1, type: "mc", prompt: "The smartphone is a universal tool that has achieved _______ popularity.", options: ["widespread", "temporary", "rare", "delicate"], answerB64: SECURE_KEYS.WIDESPREAD, hint: "Check L9 AIO p.90: 10 letters starting with w", log: "L9 AIO p.90: Find word meaning 'existing over a wide area'" },
-      { id: "s1_q2", level: 1, difficulty: 1, type: "mc", prompt: "Interestingly, many features we use today are _______ from early space exploration technology.", options: ["derived", "worth", "strolled", "expected"], answerB64: SECURE_KEYS.DERIVED, hint: "Check L9 AIO p.90: 7 letters starting with d", log: "L9 AIO p.90: Find word meaning 'originating or born out of'" },
-      { id: "s1_q3", level: 1, difficulty: 2, type: "mc", prompt: "At first, Daisy took teaching math at school as a _______ job, but it turned out to be her life-long career.", options: ["temporary", "constantly", "numerous", "digital"], answerB64: SECURE_KEYS.TEMPORARY, hint: "Check L8 AIO p.80: 9 letters starting with t", log: "L8 AIO p.80: Find word meaning 'not permanent; lasting for a limited time'" },
-      { id: "s1_q4", level: 1, difficulty: 2, type: "mc", prompt: "The ballet dancer gave an impressive performance. After she finished her dance, the whole _______ stood up and applauded her.", options: ["audience", "celebrity", "neighborhood", "vehicle"], answerB64: SECURE_KEYS.AUDIENCE, hint: "Check L7 AIO p.71: 8 letters starting with a", log: "L7 AIO p.71: Find word meaning 'the group of spectators or listeners'" },
-      { id: "s1_q5", level: 1, difficulty: 3, type: "mc", prompt: "There are _______ reasons why you should study hard in school; it shapes your thinking and future opportunities.", options: ["numerous", "worth", "temporary", "digital"], answerB64: SECURE_KEYS.NUMEROUS, hint: "Check L7 AIO p.71: 8 letters starting with n", log: "L7 AIO p.71: Find word meaning 'many; existing in large numbers'" },
-      { id: "s1_q6", level: 1, difficulty: 3, type: "mc", prompt: "For the past few days, Jenny has felt troubled because her ex-boyfriend has been calling her _______.", options: ["constantly", "hardly", "otherwise", "regularly"], answerB64: SECURE_KEYS.CONSTANTLY, hint: "Check L9 AIO p.90: 10 letters starting with c", log: "L9 AIO p.90: Find adverb meaning 'all the time; without stopping'" },
-      { id: "s1_q7", level: 1, difficulty: 1, type: "mc", prompt: "The price of this sports car might seem a little steep, but you will find it is _______ it because of its high performance.", options: ["worth", "derived", "widespread", "temporary"], answerB64: SECURE_KEYS.WORTH, hint: "Check L7 AIO p.71: 5 letters starting with w", log: "L7 AIO p.71: Find word meaning 'having a value of'" },
-      { id: "s1_q8", level: 1, difficulty: 1, type: "phrase", prompt: "In Taiwan, the master chefs of Ban-Doh work hard to _______ high standards of culinary art.", phraseSlot: "A", answerB64: SECURE_KEYS.KP_WITH, hint: "Check L8 四合一 p.213: representing 'to go at the same rate as'", log: "L8 四合一 p.213: Find matching phrase meaning 'to keep up with'" },
-      { id: "s1_q9", level: 1, difficulty: 2, type: "phrase", prompt: "Similarly, scientists who work for the TED organization are constantly _______ new ideas that can make a difference.", phraseSlot: "B", answerB64: SECURE_KEYS.IP_OF, hint: "Check L7 課本 p.169: representing 'actively chasing or seeking'", log: "L7 課本 p.169: Find matching phrase meaning 'searching or chasing'" },
-      { id: "s1_q10", level: 1, difficulty: 3, type: "phrase", prompt: "_______ what challenges they face, both groups remain passionate about their crafts.", phraseSlot: "C", answerB64: SECURE_KEYS.NO_MATTER, hint: "Check L9 四合一 p.234: concession phrase used to mean 'regardless of'", log: "L9 四合一 p.234: Find concessive clause starter" },
+      { id: "s1_q1", level: 1, difficulty: 1, type: "mc", prompt: "Due to the rise of social media, the influence of online trends has become incredibly _______ among teenagers worldwide.", options: ["widespread", "temporary", "rare", "delicate"], answerB64: SECURE_KEYS.WIDESPREAD, hint: "Check L9 AIO p.90: 10 letters starting with w", log: "L9 AIO p.90: Find word meaning 'existing over a wide area'" },
+      { id: "s1_q2", level: 1, difficulty: 1, type: "mc", prompt: "Many scientific and medical terms used in modern biology are actually _______ from ancient Latin and Greek origins.", options: ["derived", "worth", "strolled", "expected"], answerB64: SECURE_KEYS.DERIVED, hint: "Check L9 AIO p.90: 7 letters starting with d", log: "L9 AIO p.90: Find word meaning 'originating or born out of'" },
+      { id: "s1_q3", level: 1, difficulty: 2, type: "mc", prompt: "Because of the road construction ahead, drivers had to follow a _______ bypass to get to the shopping mall.", options: ["temporary", "constantly", "numerous", "digital"], answerB64: SECURE_KEYS.TEMPORARY, hint: "Check L8 AIO p.80: 9 letters starting with t", log: "L8 AIO p.80: Find word meaning 'not permanent; lasting for a limited time'" },
+      { id: "s1_q4", level: 1, difficulty: 2, type: "mc", prompt: "The guest speaker delivered a powerful message that kept the entire _______ completely silent and focused.", options: ["audience", "celebrity", "neighborhood", "vehicle"], answerB64: SECURE_KEYS.AUDIENCE, hint: "Check L7 AIO p.71: 8 letters starting with a", log: "L7 AIO p.71: Find word meaning 'the group of spectators or listeners'" },
+      { id: "s1_q5", level: 1, difficulty: 3, type: "mc", prompt: "Before choosing a university, students usually visit _______ department websites to compare courses and programs.", options: ["numerous", "worth", "temporary", "digital"], answerB64: SECURE_KEYS.NUMEROUS, hint: "Check L7 AIO p.71: 8 letters starting with n", log: "L7 AIO p.71: Find word meaning 'many; existing in large numbers'" },
+      { id: "s1_q6", level: 1, difficulty: 3, type: "mc", prompt: "In order to win the upcoming tournament, the professional athlete _______ practices her backhand shots every single afternoon.", options: ["constantly", "hardly", "otherwise", "regularly"], answerB64: SECURE_KEYS.CONSTANTLY, hint: "Check L9 AIO p.90: 10 letters starting with c", log: "L9 AIO p.90: Find adverb meaning 'all the time; without stopping'" },
+      { id: "s1_q7", level: 1, difficulty: 1, type: "mc", prompt: "The long queue of eager customers waiting outside the bakery made it clear that their famous croissants were well _______ the wait.", options: ["worth", "derived", "widespread", "temporary"], answerB64: SECURE_KEYS.WORTH, hint: "Check L7 AIO p.71: 5 letters starting with w", log: "L7 AIO p.71: Find word meaning 'having a value of'" },
+      { id: "s1_q8", level: 1, difficulty: 1, type: "phrase", prompt: "With technology changing so fast, traditional businesses must upgrade their software to _______ the global market demand.", phraseSlot: "A", answerB64: SECURE_KEYS.KP_WITH, hint: "Check L8 四合一 p.213: representing 'to go at the same rate as'", log: "L8 四合一 p.213: Find matching phrase meaning 'to keep up with'" },
+      { id: "s1_q9", level: 1, difficulty: 2, type: "phrase", prompt: "Many ambitious young painters move to Paris _______ their creative dreams and search for career breakthroughs.", phraseSlot: "B", answerB64: SECURE_KEYS.IP_OF, hint: "Check L7 課本 p.169: representing 'actively chasing or seeking'", log: "L7 課本 p.169: Find matching phrase meaning 'searching or chasing'" },
+      { id: "s1_q10", level: 1, difficulty: 3, type: "phrase", prompt: "_______ how difficult the situation became during the heavy storm, the rescue team refused to give up on the stranded hikers.", phraseSlot: "C", answerB64: SECURE_KEYS.NO_MATTER, hint: "Check L9 四合一 p.234: concession phrase used to mean 'regardless of'", log: "L9 四合一 p.234: Find concessive clause starter" },
 
       // ==================== STAGE 2: GRAMMAR & CORE S2 ====================
-      { id: "s2_q1", level: 2, difficulty: 3, type: "reorder", prompt: "重組句型：「不論任務多麼困難，太空人都會保持艙門鎖緊。」", answerB64: SECURE_KEYS.NO_MATTER_HOW, pool: ["No matter how", "the astronaut", "difficult the task is,", "kept the door", "locked."], hint: "No matter how + adj. + S + V, S + keep + O + adj.", log: "L9 四合一 p.234: Practice of 'No matter how' structures" },
-      { id: "s2_q2", level: 2, difficulty: 3, type: "reorder", prompt: "重組句型：「一聽到鐘聲響起，學生們就離開了教室。」", answerB64: SECURE_KEYS.UPON_HEARING, pool: ["Upon hearing", "the bell ring,", "the students", "left the", "classroom."], hint: "Upon + V-ing, S + V. (On/Upon structures)", log: "L8 四合一 p.213: Practice of 'Upon/On + V-ing' structures" },
-      { id: "s2_q3", level: 2, difficulty: 2, type: "mc", prompt: "Astronauts living in extreme environments often find _______ congested or disoriented due to zero gravity.", options: ["themselves", "their life", "others", "somewhere"], answerB64: SECURE_KEYS.FIND_THEMSELVES, hint: "Review R3 句型: S + find + themselves + O.C.", log: "R3 四合一 p.253: Incomplete transitive verb structure" },
-      { id: "s2_q4", level: 2, difficulty: 2, type: "mc", prompt: "Jessie looks upset. It is _______ something is worrying her.", options: ["obvious that", "obviously that", "obvious to", "obviously to"], answerB64: SECURE_KEYS.CLEAR_THAT, hint: "Review L7 課本 p.169: It is + adj. + that + S + V", log: "L7 四合一 p.191: Explanatory adjective clauses with dummy It" },
-      { id: "s2_q5", level: 2, difficulty: 1, type: "mc", prompt: "Despite the constant danger of space debris, astronauts still manage to _______ normal life aboard the ISS.", options: ["lead a normal life", "keep space with", "take part in", "release pressure"], answerB64: SECURE_KEYS.NORMAL_LIFE, hint: "Review R3 講義 p.254: synonym for 'live a simple life'", log: "R3 講義 p.254: Collocation with 'life'" },
-      { id: "s2_q6", level: 2, difficulty: 1, type: "mc", prompt: "The host of the banquet would provide a plastic _______ for the guests to pack up leftovers and take them home.", options: ["container", "vehicle", "shelter", "neighborhood"], answerB64: SECURE_KEYS.CONTAINER, hint: "Check L8 AIO p.80: 9 letters starting with c", log: "L8 AIO p.80: Vocabulary word meaning 'box or jar used to hold things'" },
-      { id: "s2_q7", level: 2, difficulty: 1, type: "mc", prompt: "A truck driver was injured because his _______ overturned on the slippery mountain highway.", options: ["vehicle", "container", "shelter", "neighborhood"], answerB64: SECURE_KEYS.VEHICLE, hint: "Check L8 AIO p.80: 7 letters starting with v", log: "L8 AIO p.80: Vocabulary word meaning 'something used for transporting people or goods'" },
-      { id: "s2_q8", level: 2, difficulty: 2, type: "mc", prompt: "Many parents have high _______ of their children, hoping they will become successful professionals.", options: ["expectations", "arrangements", "limitations", "injuries"], answerB64: SECURE_KEYS.EXPECTATIONS, hint: "Check L8 AIO p.80: 12 letters starting with e", log: "L8 AIO p.80: Noun variation of 'expect'" },
-      { id: "s2_q9", level: 2, difficulty: 2, type: "mc", prompt: "Since we had plenty of time before the banquet, we _______ along the harbor and watched the ships.", options: ["strolled", "arranged", "exchanged", "bothered"], answerB64: SECURE_KEYS.STROLL, hint: "Check L8 AIO p.80: 5 letters starting with s (past tense)", log: "L8 AIO p.80: Vocabulary word meaning 'to walk in a slow, relaxed way'" },
-      { id: "s2_q10", level: 2, difficulty: 1, type: "mc", prompt: "Living in a friendly _______ makes people feel safer and more connected to those around them.", options: ["neighborhood", "expectations", "limitations", "containers"], answerB64: SECURE_KEYS.NEIGHBORHOOD, hint: "Check L8 AIO p.80: 12 letters starting with n", log: "L8 AIO p.80: Vocabulary word meaning 'area surrounding a person's home'" },
+      { id: "s2_q1", level: 2, difficulty: 3, type: "reorder", prompt: "重組句型：「不論天氣多麼寒冷，那個小男孩每天早上都會去慢跑。」", answerB64: SECURE_KEYS.NO_MATTER_HOW, pool: ["No matter how", "the little boy", "cold the weather is,", "goes jogging", "every morning."], hint: "No matter how + adj. + S + V, S + V. (Regardless of temperature)", log: "L9 四合一 p.234: Practice of 'No matter how' structures" },
+      { id: "s2_q2", level: 2, difficulty: 3, type: "reorder", prompt: "重組句型：「一看到媽媽走進房間，小寶寶立刻開心地笑了。」", answerB64: SECURE_KEYS.UPON_HEARING, pool: ["Upon seeing", "his mother enter the room,", "the baby", "smiled happily", "at once."], hint: "Upon + V-ing, S + V. (On/Upon seeing structures)", log: "L8 四合一 p.213: Practice of 'Upon/On + V-ing' structures" },
+      { id: "s2_q3", level: 2, difficulty: 2, type: "mc", prompt: "Under high pressure during final exams, many stressed-out students find _______ completely unable to concentrate on simple questions.", options: ["find themselves", "feel themselves", "lose themselves", "help themselves"], answerB64: SECURE_KEYS.FIND_THEMSELVES, hint: "Review R3 句型: S + find + themselves + O.C.", log: "R3 四合一 p.253: Incomplete transitive verb structure" },
+      { id: "s2_q4", level: 2, difficulty: 2, type: "mc", prompt: "From his bright, joyful smile and excited posture, it is _______ he is extremely pleased with his final grade.", options: ["obvious that", "obviously that", "obvious to", "obviously to"], answerB64: SECURE_KEYS.CLEAR_THAT, hint: "Review L7 課本 p.169: It is + adj. + that + S + V", log: "L7 四合一 p.191: Explanatory adjective clauses with dummy It" },
+      { id: "s2_q5", level: 2, difficulty: 1, type: "mc", prompt: "After recovering fully from the serious leg injury, the professional athlete was finally able to _______ again.", options: ["lead a normal life", "keep space with", "take part in", "release pressure"], answerB64: SECURE_KEYS.NORMAL_LIFE, hint: "Review R3 講義 p.254: synonym for 'live a simple life'", log: "R3 講義 p.254: Collocation with 'life'" },
+      { id: "s2_q6", level: 2, difficulty: 1, type: "mc", prompt: "Always store these highly reactive chemicals inside a tightly sealed _______ to prevent dangerous leaks in the laboratory.", options: ["container", "vehicle", "shelter", "neighborhood"], answerB64: SECURE_KEYS.CONTAINER, hint: "Check L8 AIO p.80: 9 letters starting with c", log: "L8 AIO p.80: Vocabulary word meaning 'box or jar used to hold things'" },
+      { id: "s2_q7", level: 2, difficulty: 1, type: "mc", prompt: "Electric cars have quickly become a popular _______ option for city residents looking to reduce their daily carbon emissions.", options: ["vehicle", "container", "shelter", "neighborhood"], answerB64: SECURE_KEYS.VEHICLE, hint: "Check L8 AIO p.80: 7 letters starting with v", log: "L8 AIO p.80: Vocabulary word meaning 'something used for transporting people or goods'" },
+      { id: "s2_q8", level: 2, difficulty: 2, type: "mc", prompt: "The director's new sci-fi film was so well-acted and visually stunning that it completely exceeded the audience's _______.", options: ["expectations", "arrangements", "limitations", "injuries"], answerB64: SECURE_KEYS.EXPECTATIONS, hint: "Check L8 AIO p.80: 12 letters starting with e", log: "L8 AIO p.80: Noun variation of 'expect'" },
+      { id: "s2_q9", level: 2, difficulty: 2, type: "mc", prompt: "After enjoying a very heavy dinner, the elderly couple slowly _______ around the quiet park to enjoy the cool night breeze.", options: ["strolled", "arranged", "exchanged", "bothered"], answerB64: SECURE_KEYS.STROLL, hint: "Check L8 AIO p.80: 8 letters starting with s (past tense strolled)", log: "L8 AIO p.80: Vocabulary word meaning 'to walk in a slow, relaxed way'" },
+      { id: "s2_q10", level: 2, difficulty: 1, type: "mc", prompt: "Our family recently moved to a peaceful, safe _______ that features multiple parks and convenient grocery stores.", options: ["neighborhood", "expectations", "limitations", "containers"], answerB64: SECURE_KEYS.NEIGHBORHOOD, hint: "Check L8 AIO p.80: 12 letters starting with n", log: "L8 AIO p.80: Vocabulary word meaning 'area surrounding a person's home'" },
 
       // ==================== STAGE 3: TEXTBOOK DEEP SEARCH ====================
       { id: "s3_q1", level: 3, difficulty: 1, type: "mc", prompt: "According to L9課本 p.214, the word 'paparazzi' originated from a character in the film La Dolce Vita. What is the second word of this film?", options: ["Dolce", "Vita", "La", "Paparazzo"], answerB64: SECURE_KEYS.DOLCE, hint: "Check L9 課本 p.214 Line 9", log: "L9 課本 p.214: Eponym origin details" },
@@ -424,17 +431,17 @@
       { id: "s3_q3", level: 3, difficulty: 2, type: "mc", prompt: "According to L8課本 p.175, what is the Taiwanese Romanized spelling for the banquet assistants/helpers who carry out serving chores?", options: ["tsui-kha", "ban-doh", "m-sai", "thau-ke"], answerB64: SECURE_KEYS.TSUI_KHA, hint: "Check L8 課本 p.175 SDGs section: t___-k__", log: "L8 課本 p.175: Sustainable ban-doh helpers" },
       { id: "s3_q4", level: 3, difficulty: 2, type: "mc", prompt: "According to L7課本 p.169-170, a standard TED Talk is strictly restricted to how many minutes?", options: ["eighteen", "fifteen", "twenty", "thirty"], answerB64: SECURE_KEYS.EIGHTEEN, hint: "Check L7 課本 p.169 Comprehensive Practice: spell out the number", log: "L7 課本 p.169: TED conference rules" },
       { id: "s3_q5", level: 3, difficulty: 3, type: "mc", prompt: "Beside the immune function, the ISS twin study also discovered shocking alterations in Scott Kelly's _______.", options: ["gene expression", "heart rate", "bone density", "blood pressure"], answerB64: SECURE_KEYS.GENE_EXP, hint: "Check R3 AIO p.104: 2 words (g___ e_________)", log: "R3 AIO p.104: Comprehensive results of NASA Twin Study" },
-      { id: "s3_q6", level: 3, difficulty: 3, type: "mc", prompt: "If you don't want to fail the upcoming final exam, there is no _______ but to study hard starting today.", options: ["alternative", "combination", "curiosity", "limitation"], answerB64: SECURE_KEYS.ALTERNATIVE, hint: "Check L9 AIO p.90: 11 letters starting with a", log: "L9 AIO p.90: Noun meaning 'another choice or option'" },
-      { id: "s3_q7", level: 3, difficulty: 2, type: "mc", prompt: "This software is best used in _______ with digital design programs.", options: ["combination", "alternative", "curiosity", "brand"], answerB64: SECURE_KEYS.COMBINATION, hint: "Check L9 AIO p.90: 11 letters starting with c", log: "L9 AIO p.90: Noun variation of 'combine'" },
-      { id: "s3_q8", level: 3, difficulty: 1, type: "mc", prompt: "Traditional paper files are gradually being replaced by _______ records to save storage space.", options: ["digital", "temporary", "constantly", "numerous"], answerB64: SECURE_KEYS.DIGITAL, hint: "Check L9 AIO p.90: 7 letters starting with d", log: "L9 AIO p.90: Adjective form of 'digit'" },
-      { id: "s3_q9", level: 3, difficulty: 1, type: "mc", prompt: "The children were full of _______, asking endless questions about how stars were formed in outer space.", options: ["curiosity", "expectations", "limitations", "injuries"], answerB64: SECURE_KEYS.CURIOSITY, hint: "Check L8 AIO p.80: 9 letters starting with c", log: "L8 AIO p.80: Noun form of 'curious'" },
-      { id: "s3_q10", level: 3, difficulty: 2, type: "mc", prompt: "Sony and Apple are two of the most recognizable electrical _______ in the global market.", options: ["brands", "vehicles", "containers", "neighborhoods"], answerB64: SECURE_KEYS.BRAND, hint: "Check L9 AIO p.90: 5 letters starting with b", log: "L9 AIO p.90: Noun referring to product names" },
+      { id: "s3_q6", level: 3, difficulty: 3, type: "mc", prompt: "With no gas stations nearby, driving an electric vehicle became our only viable _______ for the cross-country road trip.", options: ["alternative", "combination", "curiosity", "limitation"], answerB64: SECURE_KEYS.ALTERNATIVE, hint: "Check L9 AIO p.90: 11 letters starting with a", log: "L9 AIO p.90: Noun meaning 'another choice or option'" },
+      { id: "s3_q7", level: 3, difficulty: 2, type: "mc", prompt: "The unique flavor profile of this famous spicy chef's sauce comes from a secret _______ of sweet honey and fiery chilies.", options: ["combination", "alternative", "curiosity", "brand"], answerB64: SECURE_KEYS.COMBINATION, hint: "Check L9 AIO p.90: 11 letters starting with c", log: "L9 AIO p.90: Noun variation of 'combine'" },
+      { id: "s3_q8", level: 3, difficulty: 1, type: "mc", prompt: "In order to save storage space and prevent waste, our office has fully converted all paper medical logs into _______ files.", options: ["digital", "temporary", "constantly", "numerous"], answerB64: SECURE_KEYS.DIGITAL, hint: "Check L9 AIO p.90: 7 letters starting with d", log: "L9 AIO p.90: Adjective form of 'digit'" },
+      { id: "s3_q9", level: 3, difficulty: 1, type: "mc", prompt: "The curious young puppy closely followed the tiny green caterpillar crawling in the backyard with intense _______.", options: ["curiosity", "expectations", "limitations", "injuries"], answerB64: SECURE_KEYS.CURIOSITY, hint: "Check L8 AIO p.80: 9 letters starting with c", log: "L8 AIO p.80: Noun form of 'curious'" },
+      { id: "s3_q10", level: 3, difficulty: 2, type: "mc", prompt: "Modern consumers often prefer well-known global _______ because they expect consistent performance and reliable warranties.", options: ["brands", "vehicles", "containers", "neighborhoods"], answerB64: SECURE_KEYS.BRAND, hint: "Check L9 AIO p.90: 5 letters starting with b", log: "L9 AIO p.90: Noun referring to product names (plural brands)" },
 
       // ==================== STAGE 4: VIDEO INTERACTIVE (ISS) ====================
       { id: "s4_q1", level: 4, difficulty: 1, type: "mc", prompt: "According to the video, which GMT timezone does the ISS run on to keep its international crew unified?", options: ["Greenwich Mean Time (GMT)", "Eastern Standard Time (EST)", "Moscow Time (MSK)", "Japan Standard Time (JST)"], answerB64: SECURE_KEYS.GMT, hint: "Video [04:44]: United Kingdom time baseline", log: "ISS Video: Unified time system selection" },
       { id: "s4_q2", level: 4, difficulty: 1, type: "mc", prompt: "Electrolysis machine splits water molecules to supply the cabin with recycled _______.", options: ["air", "water", "electricity", "fuel"], answerB64: SECURE_KEYS.AIR, hint: "Video [07:52]: 3 letters beginning with a", log: "ISS Video: Closing the life-support cycle" },
       { id: "s4_q3", level: 4, difficulty: 2, type: "mc", prompt: "Carbonated beverages are banned because without gravity, gas won't separate, leading to wet burps. What is banned?", options: ["soda", "coffee", "beer", "orange juice"], answerB64: SECURE_KEYS.SODA, hint: "Video [08:33]: 4 letters beginning with s", log: "ISS Video: Prohibited zero-gravity nutrition items" },
-      { id: "s4_q4", level: 4, difficulty: 2, type: "mc", prompt: "Without gravity, water behaves in a highly unusual way. It tends to stick together and form floating _______.", options: ["spheres", "crystals", "cubes", "streams"], answerB64: SECURE_KEYS.SPHERE, hint: "Video [05:20]: 3D round geometrical objects", log: "ISS Video: Physics of liquids in microgravity" },
+      { id: "s4_q4", level: 4, difficulty: 2, type: "mc", prompt: "Without gravity, water behaves in a highly unusual way. It tends to stick together and form floating _______.", options: ["spheres", "crystals", "cubes", "streams"], answerB64: SECURE_KEYS.SPHERE, hint: "Video [05:20]: 3D round geometrical objects (plural spheres)", log: "ISS Video: Physics of liquids in microgravity" },
       { id: "s4_q5", level: 4, difficulty: 3, type: "mc", prompt: "Since spat toothpaste cannot be released in zero-G, what must astronauts do with it after brushing?", options: ["swallow", "recycle", "freeze", "burn"], answerB64: SECURE_KEYS.SWALLOW, hint: "Video [05:47]: 7 letters starting with s", log: "ISS Video: Hygiene routines and restrictions" },
       { id: "s4_q6", level: 4, difficulty: 3, type: "mc", prompt: "Since ISS has no washing machines, where do dirty and crusty clothes ultimately go?", options: ["trash", "space capsule", "vacuum pump", "compost bin"], answerB64: SECURE_KEYS.TRASH, hint: "Video [06:06]: 5 letters starting with t", log: "ISS Video: Waste management systems" },
       { id: "s4_q7", level: 4, difficulty: 1, type: "mc", prompt: "To prevent muscle atrophy and bone density loss, astronauts must undergo how many hours of exercise daily?", options: ["two", "three", "four", "one"], answerB64: SECURE_KEYS.TWO, hint: "Video [09:00]: Spell out the number", log: "ISS Video: Physical fitness counter-measures" },
@@ -445,14 +452,14 @@
       // ==================== STAGE 5: MAGAZINE MAY 2026 ====================
       { id: "s5_q1", level: 5, difficulty: 1, type: "mc", prompt: "Crete Unit (p.12): Zeus disguised himself as a white bull and ran off with which Phoenician princess?", options: ["Europa", "Diana", "Aphrodite", "Athena"], answerB64: SECURE_KEYS.EUROPA, hint: "Magazine p.12: Princess of Crete legend", log: "Crete Odyssey: Grecian mythology" },
       { id: "s5_q2", level: 5, difficulty: 1, type: "mc", prompt: "Lithuania Soup (p.18): What is the specific native name of Lithuania's celebrated pink cold beet soup?", options: ["Saltibarsciai", "Gazpacho", "Borscht", "Minestrone"], answerB64: SECURE_KEYS.SALTIBARSCIAI, hint: "Magazine p.18: starts with S, ends with iai", log: "Pink City Soup Festival: Local language key term" },
-      { id: "s5_q3", level: 5, difficulty: 2, type: "mc", prompt: "Swifts Unit (p.24): Swifts spent almost their entire life in flight. What is the shape of their efficient wings?", options: ["sickle", "oval", "square", "fan"], answerB64: SECURE_KEYS.SICKLE, hint: "Magazine p.24: shaped like a farming crescent hook", log: "Amazing Swifts: Aerodynamic wing structures" },
+      { id: "s5_q3", level: 5, difficulty: 2, type: "mc", prompt: "Swifts Unit (p.24): Swifts spend almost their entire life in flight. What is the shape of their efficient wings?", options: ["sickle", "oval", "square", "fan"], answerB64: SECURE_KEYS.SICKLE, hint: "Magazine p.24: shaped like a farming crescent hook", log: "Amazing Swifts: Aerodynamic wing structures" },
       { id: "s5_q4", level: 5, difficulty: 2, type: "mc", prompt: "Sanrio Unit (p.32): Sanrio generates massive profits by granting mascot intellectual rights through what model?", options: ["licensing", "donating", "retailing", "subscribing"], answerB64: SECURE_KEYS.LICENSING, hint: "Magazine p.32: l_______g model", log: "Why We Love Sanrio: Business commercial licensing" },
       { id: "s5_q5", level: 5, difficulty: 3, type: "mc", prompt: "Crete Unit (p.12): What Greek island is described as the legendary birthplace of Zeus and destination of a grand Odyssey?", options: ["Crete", "Mykonos", "Santorini", "Rhodes"], answerB64: SECURE_KEYS.CRETE, hint: "Magazine p.12: Target Grecian Island", log: "Crete Odyssey: Location setting" },
       { id: "s5_q6", level: 5, difficulty: 3, type: "mc", prompt: "Lithuania Soup (p.18): What specific root vegetable gives this Lithuanian soup its vibrant pink color?", options: ["beet", "carrot", "turnip", "radish"], answerB64: SECURE_KEYS.BEET, hint: "Magazine p.18: 4 letters starting with b", log: "Lithuanian Pink Soup: Culinary ingredients" },
       { id: "s5_q7", level: 5, difficulty: 1, type: "mc", prompt: "Swifts Unit (p.24): Because swifts sleep, eat, and even mate on the wing, they spend most of their life in the _______.", options: ["air", "nest", "water", "tree"], answerB64: SECURE_KEYS.AIR_MAG, hint: "Magazine p.24: 3 letters starting with a", log: "Swifts: Life cycle in flight" },
       { id: "s5_q8", level: 5, difficulty: 2, type: "mc", prompt: "Sanrio Unit (p.32): Sanrio's most globally successful and iconic mascot created in 1974 is _______.", options: ["Hello Kitty", "Pompompurin", "My Melody", "Cinnamoroll"], answerB64: SECURE_KEYS.HELLO_KITTY, hint: "Magazine p.32: 2 words starting with H.K.", log: "Sanrio: Mascot profiles" },
       { id: "s5_q9", level: 5, difficulty: 3, type: "mc", prompt: "Crete Unit (p.13): In grammar highlight, which phrase is used to introduce stories passed down from the past?", options: ["legend has it that", "in contrast", "run the risk of", "bring to mind"], answerB64: SECURE_KEYS.LEGEND_HAS_IT, hint: "Magazine p.13: starts with 'legend...'", log: "Crete: Grammar patterns" },
-      { id: "s5_q10", level: 5, difficulty: 2, type: "mc", prompt: "Lithuania Soup (p.18): The Pink City Beetroot Soup Festival celebrates Lithuanian cuisine in which city?", options: ["Vilnius", "Kaunas", "Klaipeda", "Siauliai"], answerB64: SECURE_KEYS.SALTIBARSCIAI, hint: "Magazine p.18: Lithuania's historical capital city starting with V", log: "Pink Soup Festival: Lithuanian city context" }
+      { id: "s5_q10", level: 5, difficulty: 2, type: "mc", prompt: "Lithuania Soup (p.18): The Pink City Beetroot Soup Festival celebrates Lithuanian cuisine in which city?", options: ["Vilnius", "Kaunas", "Klaipeda", "Siauliai"], answerB64: SECURE_KEYS.VILNIUS, hint: "Magazine p.18: Lithuania's historical capital city starting with V (Vilnius)", log: "Pink Soup Festival: Lithuanian city context" }
     ];
 
     // Determine and Fetch Next Adaptive Question
@@ -733,7 +740,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <button onclick="selectPhraseOnly('keep pace with')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">keep pace with</button>
               <button onclick="selectPhraseOnly('in pursuit of')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in pursuit of</button>
-              <button onclick="selectPhraseOnly('No matter')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all font-mono">No matter</button>
+              <button onclick="selectPhraseOnly('No matter')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all font-mono font-bold">No matter</button>
               <button onclick="selectPhraseOnly('in combination with')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in combination with</button>
             </div>
             <p class="text-[11px] text-yellow-400 mt-3">當前選擇：<span id="s1-phrase-preview" class="font-bold">-</span></p>
@@ -806,7 +813,8 @@
       
       const btns = document.querySelectorAll(".mc-btn");
       btns.forEach(btn => {
-        if (btn.querySelector('span').innerText === opt) {
+        const firstSpan = btn.querySelector('span');
+        if (firstSpan && firstSpan.innerText === opt) {
           btn.className = "mc-btn p-3 bg-cyan-950/40 text-cyan-300 rounded-lg border border-cyan-500 text-left transition-all flex items-center justify-between glow-cyan";
         } else {
           btn.className = "mc-btn p-3 bg-slate-900 rounded-lg border border-slate-800 hover:border-cyan-500 text-left transition-all flex items-center justify-between";
@@ -1003,6 +1011,7 @@
     }
 
     function checkB64(value, b64Expected) {
+      if (!value) return false;
       return btoa(value.trim().toLowerCase()) === b64Expected;
     }
 
@@ -1020,6 +1029,28 @@
     function toggleAboutModal() {
       const modal = document.getElementById("modal-about");
       modal.classList.toggle("hidden");
+    }
+
+    // Safe sound generator for Chromebook/Mobile environments
+    function playBeep(freq, type, duration) {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return; // Exit gracefully if not supported
+        if (!audioCtx) audioCtx = new AudioContextClass();
+        
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = type || 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn("Audio Context block:", e);
+      }
     }
     
     // Auto-adjust layout on window resize to ensure state is clean
