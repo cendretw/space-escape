@@ -305,6 +305,7 @@
 
     // TOEFL Adaptive Structures
     let playedQuestionIds = new Set();
+    let playedInThisLevel = new Set(); // Tracks unplayed in current level session
     let failedQueue = []; // Keeps IDs of questions that the player answered wrong
     let currentActiveQuestion = null;
     let currentStepValidated = false;
@@ -443,47 +444,53 @@
 
     // Determine and Fetch Next Adaptive Question
     function getNextAdaptiveQuestion() {
-      // 1. Check if failedQueue has elements and draw with 40% probability for Spaced Repetition (Reinforcement)
+      // 1. Spaced Repetition (Failed question review):
+      // 40% chance of drawing a previously failed question, IF failedQueue has items
       if (failedQueue.length > 0 && Math.random() < 0.40) {
-        let qId = failedQueue.shift();
-        let originalQ = fullQuestionPool.find(q => q.id === qId);
-        if (originalQ) {
-          // Clone the original question
-          let clonedQ = JSON.parse(JSON.stringify(originalQ));
-          clonedQ.isReview = true; 
-          // Upgrade the question type from selection/drag to pure input text! (Fulfill User's request)
-          clonedQ.type = "review_input"; 
-          return clonedQ;
+        // Find a failed question that hasn't been played in this specific level yet
+        let failedId = failedQueue.find(id => !playedInThisLevel.has(id));
+        if (failedId) {
+          // Remove from queue so we don't spam it immediately
+          failedQueue = failedQueue.filter(id => id !== failedId);
+          
+          let originalQ = fullQuestionPool.find(q => q.id === failedId);
+          if (originalQ) {
+            let clonedQ = JSON.parse(JSON.stringify(originalQ));
+            clonedQ.isReview = true;
+            clonedQ.type = "review_input"; // Force handwrite FIB!
+            playedInThisLevel.add(failedId);
+            return clonedQ;
+          }
         }
       }
 
-      // 2. Otherwise, draw a fresh question matching current level
-      let pool = fullQuestionPool.filter(q => q.level === currentLevel && !shuffledQuestions.some(sq => sq.id === q.id));
+      // 2. Regular Adaptive Question Selection:
+      // Filter pool of questions for the CURRENT LEVEL that haven't been played in this level session
+      let levelPool = fullQuestionPool.filter(q => q.level === currentLevel && !playedInThisLevel.has(q.id));
       
-      // If pool is empty (all level questions exhausted), reset tracker or fallback
-      if (pool.length === 0) {
-        pool = fullQuestionPool.filter(q => q.level === currentLevel);
+      if (levelPool.length === 0) {
+        // Emergency fallback: allow repeating unplayed/played ones if we run out
+        levelPool = fullQuestionPool.filter(q => q.level === currentLevel);
       }
 
-      // Filter by adaptive difficulty matching current level state
-      let targetDifficulty = 2; // Default Standard
-      if (score >= (currentSubStep * 8)) {
-        targetDifficulty = 3; // Harder
-      } else if (score < (currentSubStep * 4)) {
-        targetDifficulty = 1; // Easier
+      // TOEFL Adaptive Filter:
+      // Match current difficulty level (1 = Easy, 2 = Medium, 3 = Hard)
+      let matched = levelPool.filter(q => q.difficulty === currentDifficulty);
+      if (matched.length === 0) {
+        // Expand search to nearby difficulties
+        matched = levelPool.filter(q => Math.abs(q.difficulty - currentDifficulty) <= 1);
+      }
+      if (matched.length === 0) {
+        matched = levelPool; // ultimate fallback
       }
 
-      let matchedQuestions = pool.filter(q => q.difficulty === targetDifficulty);
-      if (matchedQuestions.length === 0) {
-        matchedQuestions = pool; // fallback to anything available
-      }
-
-      // Shuffle the candidates and return the first
-      let shuffledCandidates = shuffleArray(matchedQuestions);
-      return shuffledCandidates[0];
+      // Randomly pick one
+      let selected = matched[Math.floor(Math.random() * matched.length)];
+      playedInThisLevel.add(selected.id);
+      return selected;
     }
 
-    // Initialize Game - Fully completed!
+    // Initialize Game
     function startGame() {
       const nameInput = document.getElementById("input-team-name").value.trim();
       if (!nameInput) {
@@ -506,6 +513,7 @@
       levelOneMistakes = 0;
       currentDifficulty = 1;
       playedQuestionIds.clear();
+      playedInThisLevel.clear();
       failedQueue = [];
       shuffledQuestions = [];
 
@@ -574,7 +582,7 @@
         } else {
           logs = [
             { name: "L9 四合一講義", pages: "第 234 頁", detail: "定位讓步子句(無論多麼...)結構與重組規律", status: "標準重組" },
-            { name: "L8 課本 (龍騰版 B2)", pages: "第 195 頁", detail: "定位聽力練習中 Upon V-ing 句子組裝規律", status: "標準重組" },
+            { name: "L8 課本 (龍騰版 B2)", pages: "第 195 頁", detail: "定位聽力練習中 Upon V-ing 句子裝配規律", status: "標準重組" },
             { name: "L8 All in One 講義", pages: "第 80 頁", detail: "定位 container, vehicle, expectations, stroll, neighborhood", status: "常規字彙" }
           ];
         }
@@ -612,27 +620,20 @@
     // Load Stage UI & Questions
     function loadLevel(level) {
       currentLevel = level;
+      currentSubStep = 1;
+      playedInThisLevel.clear(); // Reset pool for this level session
+
       document.getElementById("level-num").innerText = level;
       document.getElementById("level-title").innerHTML = `<i class="fa-solid fa-microchip text-cyan-400 animate-pulse"></i> ${levelConfigs[level].title}`;
       document.getElementById("level-desc").innerText = levelConfigs[level].desc;
       
-      // Shuffling initialization for Level 1 questions
-      if (currentSubStep === 1) {
-        shuffledQuestions = [];
-      }
       loadNextStep();
     }
 
     // Load Next Adaptive Question
     function loadNextStep() {
-      // Setup current question
+      // Setup current question using adaptive selector
       currentActiveQuestion = getNextAdaptiveQuestion();
-      if (!currentActiveQuestion) {
-        // Fallback safety
-        currentActiveQuestion = fullQuestionPool.find(q => q.level === currentLevel);
-      }
-
-      shuffledQuestions.push(currentActiveQuestion);
 
       // Render Dashboard Progress
       document.getElementById("substep-counter").innerText = `${currentSubStep} / 10`;
@@ -642,7 +643,7 @@
       // Update Difficulty Badge UI
       const badge = document.getElementById("difficulty-badge");
       if (currentActiveQuestion.isReview) {
-        badge.innerText = "時空回漩 (複習) 🔄";
+        badge.innerText = "時空回漩 (弱點手寫) 🔄";
         badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-950 text-amber-400 border border-amber-800 animate-pulse";
       } else {
         if (currentActiveQuestion.difficulty === 1) {
@@ -669,7 +670,7 @@
       const mainBtn = document.getElementById("main-action-btn");
       mainBtn.innerHTML = `驗證本題 <i class="fa-solid fa-unlock-keyhole"></i>`;
       mainBtn.className = "flex-1 sm:flex-initial bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black px-8 py-2.5 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm";
-      document.getElementById("console-msg").innerText = currentActiveQuestion.isReview ? "⚠️ 檢測到你之前答錯的弱點題！現已轉化為手寫填充模式重新驗證！" : "控制面板已鎖定，請翻閱右側日誌指引定位。";
+      document.getElementById("console-msg").innerText = currentActiveQuestion.isReview ? "⚠️ 偵測到之前答錯的弱點！現已升級為手寫填充模式，請翻書拼寫。" : "控制面板已鎖定，請翻閱右側日誌指引定位。";
 
       renderActiveQuestionHTML(container);
     }
@@ -681,7 +682,7 @@
       // 1. If Forced Review (FIB handwrite mode)
       if (q.type === "review_input") {
         container.innerHTML = `
-          <div class="bg-slate-950/80 p-5 rounded-xl border border-amber-800/60 glow-purple">
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-amber-800/60 glow-purple animate-pulse">
             <span class="text-xs font-bold text-amber-400 block mb-2 font-orbitron"><i class="fa-solid fa-arrows-spin"></i> TIME RECOVERY / 錯題強化手寫模式</span>
             <p class="text-sm text-slate-200 mb-4 leading-relaxed">
               ${q.prompt}
@@ -883,6 +884,9 @@
           failedQueue.push(q.id);
         }
         
+        // Adjust Adaptive Difficulty Downwards
+        if (currentDifficulty > 1) currentDifficulty--;
+
         playFailSound();
         feedback.innerText = "時空常數不匹配！請點擊『取得線索』翻閱對應文獻重新校準。";
       }
@@ -909,7 +913,6 @@
       
       if (currentLevel < 5) {
         currentLevel++;
-        currentSubStep = 1;
         loadLevel(currentLevel);
       } else {
         triggerVictory();
