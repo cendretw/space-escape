@@ -2,7 +2,7 @@
 <html lang="zh-Hant-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>時空解密：消失的課本核心 - 個人挑戰版</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,6 +14,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;500;700&display=swap');
     body {
       font-family: 'Noto Sans TC', sans-serif;
+      touch-action: manipulation; /* 消除雙擊縮放延遲，對手機端觸控極佳 */
     }
     .font-orbitron {
       font-family: 'Orbitron', sans-serif;
@@ -33,135 +34,157 @@
     .pill-item:active {
       transform: scale(0.95);
     }
+    /* iOS input optimization: Prevents text zoom */
+    input[type="text"], textarea {
+      font-size: 16px !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-900">
 
   <!-- ==================== HEADER / STATUS BAR ==================== -->
-  <header id="game-header" class="hidden border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
-    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <!-- Title & Squad -->
-      <div class="flex items-center gap-3">
-        <span class="text-cyan-400 text-2xl"><i class="fa-solid fa-user-astronaut animate-bounce"></i></span>
-        <div>
-          <h1 class="text-sm md:text-base font-bold text-slate-200 tracking-wider font-orbitron">SPACE ESCAPE</h1>
-          <p class="text-xs text-slate-400">特務代號: <span id="display-team-name" class="text-cyan-300 font-semibold">-</span></p>
+  <header id="game-header" class="hidden border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-3 py-3 md:px-4">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <!-- Title & Agent Code -->
+      <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+        <div class="flex items-center gap-2">
+          <span class="text-cyan-400 text-xl"><i class="fa-solid fa-user-astronaut animate-bounce"></i></span>
+          <div>
+            <h1 class="text-sm md:text-base font-bold text-slate-200 tracking-wider font-orbitron">SPACE ESCAPE</h1>
+            <p class="text-[11px] text-slate-400">特務代號: <span id="display-team-name" class="text-cyan-300 font-semibold">-</span></p>
+          </div>
         </div>
+        <!-- Mobile status badge -->
+        <span id="mobile-difficulty-badge" class="sm:hidden px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
+          難度檢測中
+        </span>
       </div>
 
-      <!-- Live Stats -->
-      <div class="flex items-center gap-4 md:gap-8">
+      <!-- Live Stats (Layout adapts perfectly on mobile screens) -->
+      <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t border-slate-800 sm:border-0 pt-2 sm:pt-0">
         <!-- Branch Indicator -->
-        <div class="flex items-center gap-2">
+        <div class="hidden sm:flex items-center gap-2">
           <span class="text-xs text-slate-400">諧振難度:</span>
           <span id="difficulty-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
             初始檢測中...
           </span>
         </div>
 
-        <!-- Timer -->
-        <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
-          <span class="text-red-400"><i class="fa-solid fa-hourglass-half"></i></span>
-          <span id="timer-display" class="font-orbitron text-lg font-bold text-red-400 tracking-widest">35:00</span>
-        </div>
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <!-- Timer -->
+          <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800 text-xs md:text-sm">
+            <span class="text-red-400"><i class="fa-solid fa-hourglass-half"></i></span>
+            <span id="timer-display" class="font-orbitron font-bold text-red-400 tracking-widest">35:00</span>
+          </div>
 
-        <!-- Score -->
-        <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
-          <span class="text-yellow-400"><i class="fa-solid fa-trophy"></i></span>
-          <span id="score-display" class="font-orbitron text-lg font-bold text-yellow-400">0</span>
+          <!-- Score -->
+          <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800 text-xs md:text-sm">
+            <span class="text-yellow-400"><i class="fa-solid fa-trophy"></i></span>
+            <span id="score-display" class="font-orbitron font-bold text-yellow-400">0</span>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
   <!-- ==================== MAIN CONTENT AREA ==================== -->
-  <main class="flex-grow flex items-center justify-center p-4">
-    <div class="w-full max-w-4xl">
+  <main class="flex-grow flex items-center justify-center p-3 md:p-4">
+    <div class="w-full max-w-6xl">
 
       <!-- SCREEN 1: INTRO / AGENT CODE -->
-      <section id="screen-intro" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 md:p-10 text-center glow-cyan backdrop-blur-sm">
-        <div class="mb-6 inline-block bg-cyan-950/50 p-4 rounded-full border border-cyan-800">
-          <i class="fa-solid fa-user-shield text-5xl text-cyan-400 animate-pulse"></i>
+      <section id="screen-intro" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 md:p-10 text-center glow-cyan backdrop-blur-sm max-w-2xl mx-auto">
+        <div class="mb-4 md:mb-6 inline-block bg-cyan-950/50 p-4 rounded-full border border-cyan-800">
+          <i class="fa-solid fa-user-shield text-4xl md:text-5xl text-cyan-400 animate-pulse"></i>
         </div>
-        <h2 class="text-3xl md:text-4xl font-black text-cyan-400 mb-3 tracking-widest font-orbitron">時空解密：消失的課本核心</h2>
-        <p class="text-slate-300 text-sm md:text-base max-w-2xl mx-auto mb-8 leading-relaxed">
-          警報！時空裂縫正在吞噬期末考的核心知識（L7~L9, R3 及 Live 五月號雜誌）！<br>
+        <h2 class="text-2xl md:text-4xl font-black text-cyan-400 mb-3 tracking-widest font-orbitron">時空解密：消失的課本核心</h2>
+        <p class="text-slate-300 text-xs md:text-base mb-6 leading-relaxed text-left sm:text-center">
+          警報！時空裂縫正在吞噬期末考的核心知識（L7~L9, R3 及 Live 五月號雜誌）！<br class="hidden sm:inline">
           你必須獨立翻閱<strong class="text-cyan-300">實體課本、講義、雜誌</strong>，並解開飛船控制台的謎題。<br>
-          <span class="text-yellow-400 font-medium">本遊戲採用「托福式適應性演算法」，答對難度會立即提升；若答錯，該題將在後期隨機以「填空（FIB）模式」重新回到題庫中考驗你！</span><br>
-          <span class="text-cyan-400 font-semibold text-xs animate-pulse mt-2 block"><i class="fa-solid fa-shield-halved"></i> 本系統已啟用動態亂序防作弊協議，每個人的題目順序與類型皆不相同。</span>
+          <span class="text-yellow-400 font-medium">本遊戲採用「托福式適應性演算法」，答對難度會立即提升；若答錯，該題將在後期隨機以「填空（FIB）模式」重新回到題庫中考驗你！</span>
         </p>
 
-        <div class="max-w-md mx-auto bg-slate-950/80 p-6 rounded-xl border border-slate-800 mb-8">
-          <label class="block text-left text-sm font-bold text-slate-300 mb-2">輸入你的特務代號 / 學生姓名：</label>
-          <input type="text" id="input-team-name" placeholder="例如：Agent_Daphne" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 mb-4 text-center">
+        <div class="max-w-md mx-auto bg-slate-950/80 p-5 rounded-xl border border-slate-800 mb-6 md:mb-8">
+          <label class="block text-left text-xs md:text-sm font-bold text-slate-300 mb-2">輸入你的特務代號 / 學生姓名：</label>
+          <input type="text" id="input-team-name" placeholder="例如：Agent_Daphne" class="w-full h-12 bg-slate-900 border border-slate-700 rounded-lg px-4 text-base text-slate-100 focus:outline-none focus:border-cyan-500 mb-4 text-center" autocapitalize="off" autocorrect="off" spellcheck="false">
           
-          <label class="block text-left text-sm font-bold text-slate-300 mb-2">挑戰時間：</label>
-          <select id="select-time-limit" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:border-cyan-500 text-center">
+          <label class="block text-left text-xs md:text-sm font-bold text-slate-300 mb-2">挑戰時間：</label>
+          <select id="select-time-limit" class="w-full h-12 bg-slate-900 border border-slate-700 rounded-lg px-4 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 text-center">
             <option value="2100">35 分鐘 (標準挑戰)</option>
             <option value="2400">40 分鐘 (新手學習)</option>
             <option value="1800">30 分鐘 (地獄競速)</option>
           </select>
         </div>
 
-        <button onclick="startGame()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-lg px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-widest shadow-lg shadow-cyan-500/20">
+        <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-base md:text-lg px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-widest shadow-lg shadow-cyan-500/20">
           授權認證並登入系統 <i class="fa-solid fa-arrow-right ml-2"></i>
         </button>
 
         <!-- CREDITS FOOTER -->
-        <p class="text-xs text-slate-500 mt-8 tracking-widest font-orbitron uppercase">
+        <p class="text-[10px] md:text-xs text-slate-500 mt-6 md:mt-8 tracking-widest font-orbitron uppercase">
           Made by <span class="text-cyan-400/80 font-bold">Daphne Lin</span> and <span class="text-cyan-400/80 font-bold">Gemini</span>
         </p>
       </section>
 
       <!-- SCREEN 2: GAMEPLAY PLAYGROUND -->
-      <section id="screen-game" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section id="screen-game" class="hidden flex flex-col lg:flex-row gap-4 md:gap-6">
         
-        <!-- Left 2 Columns: Interative Panel & Console -->
-        <div class="lg:col-span-2 flex flex-col gap-6">
+        <!-- MOBILE TAB NAVIGATOR (Only visible on small mobile devices to switch views) -->
+        <div class="lg:hidden flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 w-full mb-2">
+          <button id="tab-btn-puzzle" onclick="switchMobileTab('puzzle')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-2 bg-cyan-950 text-cyan-400 border border-cyan-800">
+            <i class="fa-solid fa-terminal"></i> 🎯 解密面板
+          </button>
+          <button id="tab-btn-logs" onclick="switchMobileTab('logs')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-2 text-slate-400">
+            <i class="fa-solid fa-book-bookmark"></i> 📖 翻書日誌 
+            <span id="log-notification-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse hidden"></span>
+          </button>
+        </div>
+
+        <!-- Left Column: Interative Panel & Console (Width adapts dynamically) -->
+        <div id="panel-puzzle" class="w-full lg:w-2/3 flex flex-col gap-4 md:gap-6">
           
           <!-- LEVEL INTERACTIVE BOX -->
-          <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 glow-cyan backdrop-blur-sm relative overflow-hidden">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 md:p-6 glow-cyan backdrop-blur-sm relative overflow-hidden">
             <!-- Stage Label -->
-            <div class="absolute top-0 right-0 bg-cyan-950 text-cyan-400 px-4 py-1 rounded-bl-xl font-orbitron text-xs font-bold tracking-widest border-l border-b border-slate-800">
+            <div class="absolute top-0 right-0 bg-cyan-950 text-cyan-400 px-3 py-1 rounded-bl-xl font-orbitron text-[10px] md:text-xs font-bold tracking-widest border-l border-b border-slate-800">
               STAGE <span id="level-num">1</span>/5
             </div>
 
             <!-- Level Title & Description -->
-            <h3 id="level-title" class="text-xl font-black text-cyan-300 mb-2 flex items-center gap-2">
+            <h3 id="level-title" class="text-base md:text-xl font-black text-cyan-300 mb-2 flex items-center gap-2 pr-12">
               加載中...
             </h3>
-            <p id="level-desc" class="text-xs text-slate-400 mb-4 leading-relaxed">
+            <p id="level-desc" class="text-[11px] md:text-xs text-slate-400 mb-4 leading-relaxed">
               探索說明
             </p>
 
             <!-- SUB-STEP PROGRESS BAR -->
-            <div class="mb-5 bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-              <div class="flex justify-between items-center text-xs mb-2">
-                <span class="text-slate-400">當前關卡子系統進度（需解鎖 10 題）：</span>
-                <span id="substep-counter" class="text-cyan-400 font-bold font-orbitron">0 / 10</span>
+            <div class="mb-4 bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+              <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1 text-[11px] mb-2">
+                <span id="progress-info-label" class="text-slate-400">當前關卡子系統進度（需完成 10 題）：</span>
+                <span id="substep-counter" class="text-cyan-400 font-bold font-orbitron text-right shrink-0">0 / 10</span>
               </div>
-              <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                 <div id="substep-progress" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
               </div>
             </div>
 
-            <!-- Dynamic Question Form Container -->
-            <div id="question-container" class="space-y-6 min-h-[180px]">
+            <!-- Dynamic Question Form Container (Prevents overflowing and sizing bugs) -->
+            <div id="question-container" class="space-y-4 min-h-[180px] text-xs md:text-sm">
               <!-- Content injected via JavaScript -->
             </div>
           </div>
 
-          <!-- SUBMISSION & FEEDBACK CONSOLE -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="text-left w-full sm:w-auto">
-              <p class="text-xs text-slate-400">控制台反饋：</p>
-              <p id="console-msg" class="text-sm text-cyan-400 font-mono font-bold">系統就緒，等待特務輸入解答...</p>
+          <!-- SUBMISSION & FEEDBACK CONSOLE (Compact layout for touch devices) -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="text-left w-full md:w-auto">
+              <p class="text-[10px] text-slate-400">控制台反饋：</p>
+              <p id="console-msg" class="text-xs md:text-sm text-cyan-400 font-mono font-bold">系統就緒，等待特務輸入解答...</p>
             </div>
-            <div class="flex gap-3 w-full sm:w-auto shrink-0 justify-end">
-              <button onclick="triggerHint()" class="flex-1 sm:flex-initial bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2.5 rounded-lg border border-slate-700 transition-all flex items-center justify-center gap-2 text-sm">
+            <div class="flex gap-2 w-full md:w-auto shrink-0 justify-end">
+              <button onclick="triggerHint()" class="flex-1 md:flex-initial bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 h-12 rounded-lg border border-slate-700 transition-all flex items-center justify-center gap-2 text-xs">
                 <i class="fa-regular fa-lightbulb text-yellow-400 animate-pulse"></i> 取得線索
               </button>
-              <button id="main-action-btn" onclick="validateCurrentStep()" class="flex-1 sm:flex-initial bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black px-8 py-2.5 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm">
+              <button id="main-action-btn" onclick="validateCurrentStep()" class="flex-1 md:flex-initial bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black px-6 h-12 rounded-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 text-xs tracking-wider">
                 驗證本題 <i class="fa-solid fa-unlock-keyhole"></i>
               </button>
             </div>
@@ -169,30 +192,30 @@
 
         </div>
 
-        <!-- Right 1 Column: Physical Search Logs (Book Pointers) -->
-        <div class="flex flex-col gap-6">
-          <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 backdrop-blur-sm flex-grow">
-            <h4 class="text-sm font-black text-yellow-400 tracking-wider mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+        <!-- Right Column: Physical Search Logs (Switches perfectly based on responsive breakpoint) -->
+        <div id="panel-logs" class="hidden lg:flex w-full lg:w-1/3 flex-col gap-4 md:gap-6">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 md:p-5 backdrop-blur-sm flex-grow flex flex-col">
+            <h4 class="text-xs md:text-sm font-black text-yellow-400 tracking-wider mb-3 flex items-center gap-2 border-b border-slate-800 pb-2">
               <i class="fa-solid fa-book-open"></i> 實體文獻定位日誌
             </h4>
-            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-              系統偵測到以下關卡對應實體書本、講義。請立即指派組員翻開指定頁面搜索關鍵字！
+            <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">
+              控制台與紙本課本已同步。請立刻翻開你桌上的實體講義或雜誌進行搜索！
             </p>
             
-            <div class="space-y-3" id="book-logs-container">
+            <div class="space-y-2.5 overflow-y-auto max-h-[350px] lg:max-h-none flex-grow" id="book-logs-container">
               <!-- Log Items generated Dynamically -->
             </div>
           </div>
 
           <!-- Time Warning Module -->
-          <div class="bg-red-950/20 border border-red-900/50 rounded-xl p-4 flex items-center gap-3">
-            <div class="bg-red-900/30 p-2.5 rounded-lg text-red-500">
-              <i class="fa-solid fa-triangle-exclamation text-xl animate-pulse"></i>
+          <div class="bg-red-950/20 border border-red-900/50 rounded-xl p-3 flex items-center gap-3">
+            <div class="bg-red-900/30 p-2.5 rounded-lg text-red-500 shrink-0">
+              <i class="fa-solid fa-triangle-exclamation text-base animate-pulse"></i>
             </div>
             <div>
               <h5 class="text-xs font-bold text-red-400">防卡關安全協議</h5>
-              <p class="text-[11px] text-slate-400 leading-normal">
-                若卡關超過3分鐘，請點擊「取得線索」。系統將解鎖對應的課本頁碼與段落行數。
+              <p class="text-[10px] text-slate-400 leading-normal">
+                若卡關超過 3 分鐘，請點擊「取得線索」。系統將展示更精細的定位資訊。
               </p>
             </div>
           </div>
@@ -201,63 +224,63 @@
       </section>
 
       <!-- SCREEN 3: STAGE CLEAR TRANSITION CONGRATULATIONS -->
-      <section id="screen-stage-clear" class="hidden bg-slate-900/80 border border-cyan-800 rounded-2xl p-8 text-center glow-cyan max-w-2xl mx-auto backdrop-blur-md">
-        <div class="mb-6 inline-block bg-cyan-950/60 p-5 rounded-full border border-cyan-500">
-          <i class="fa-solid fa-circle-check text-5xl text-cyan-400 animate-bounce"></i>
+      <section id="screen-stage-clear" class="hidden bg-slate-900/80 border border-cyan-800 rounded-2xl p-6 md:p-8 text-center glow-cyan max-w-xl mx-auto backdrop-blur-md">
+        <div class="mb-4 md:mb-6 inline-block bg-cyan-950/60 p-4 rounded-full border border-cyan-500">
+          <i class="fa-solid fa-circle-check text-4xl md:text-5xl text-cyan-400 animate-bounce"></i>
         </div>
-        <h2 id="clear-stage-title" class="text-2xl md:text-3xl font-black text-cyan-300 mb-3 tracking-widest font-orbitron">STAGE CLEARED</h2>
-        <p id="clear-stage-desc" class="text-slate-300 text-sm md:text-base leading-relaxed mb-6">
+        <h2 id="clear-stage-title" class="text-xl md:text-2xl font-black text-cyan-300 mb-3 tracking-widest font-orbitron">STAGE CLEARED</h2>
+        <p id="clear-stage-desc" class="text-slate-300 text-xs md:text-sm leading-relaxed mb-6">
           太優秀了！你成功重構了本關卡的核心數據，防止其被時空亂流吞噬。
         </p>
 
-        <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 mb-6 space-y-3 text-left">
+        <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800 mb-6 space-y-2.5 text-left">
           <p class="text-xs flex justify-between"><span>目前關卡數：</span><span id="badge-level-finished" class="text-cyan-400 font-bold">-</span></p>
           <p class="text-xs flex justify-between"><span>當前累積得分：</span><span id="badge-score" class="text-yellow-400 font-bold font-orbitron">-</span></p>
           <p class="text-xs flex justify-between"><span>第一關犯錯數：</span><span id="badge-mistakes" class="text-red-400 font-bold font-orbitron">0</span></p>
         </div>
 
-        <button onclick="proceedToNextLevel()" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-slate-950 font-black text-lg px-8 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-wider">
+        <button onclick="proceedToNextLevel()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-slate-950 font-black text-sm md:text-base py-3 px-6 rounded-xl transition-all duration-300 transform active:scale-95 tracking-wider">
           前往下一關卡系統 ➔
         </button>
       </section>
 
       <!-- SCREEN 4: OUTRO / ESCAPED / VICTORY -->
-      <section id="screen-victory" class="hidden bg-slate-900/60 border border-emerald-800 rounded-2xl p-6 md:p-10 text-center glow-cyan backdrop-blur-sm">
-        <div class="mb-6 inline-block bg-emerald-950/50 p-6 rounded-full border border-emerald-500">
-          <i class="fa-solid fa-circle-check text-6xl text-emerald-400 animate-bounce"></i>
+      <section id="screen-victory" class="hidden bg-slate-900/60 border border-emerald-800 rounded-2xl p-6 md:p-10 text-center glow-cyan backdrop-blur-sm max-w-xl mx-auto">
+        <div class="mb-4 md:mb-6 inline-block bg-emerald-950/50 p-5 rounded-full border border-emerald-500">
+          <i class="fa-solid fa-circle-check text-5xl md:text-6xl text-emerald-400 animate-bounce"></i>
         </div>
-        <h2 class="text-3xl md:text-5xl font-black text-emerald-400 mb-3 tracking-widest font-orbitron">MISSION COMPLETED</h2>
-        <p class="text-lg text-slate-200 mb-6 font-bold">成功脫離時空亂流！消失的核心知識已重構完畢！</p>
+        <h2 class="text-2xl md:text-4xl font-black text-emerald-400 mb-3 tracking-widest font-orbitron">MISSION COMPLETED</h2>
+        <p class="text-xs md:text-base text-slate-200 mb-6 font-bold">成功脫離時空亂流！消失的核心知識已重構完畢！</p>
         
-        <div class="max-w-md mx-auto bg-slate-950/80 p-6 rounded-xl border border-slate-800 mb-8 space-y-4 text-left">
-          <h4 class="text-center font-bold text-cyan-400 text-lg border-b border-slate-800 pb-2 font-orbitron">TEAM STATUS REPORT</h4>
-          <p class="text-sm flex justify-between"><span>特務小隊：</span><span id="final-team" class="text-slate-100 font-bold">-</span></p>
-          <p class="text-sm flex justify-between"><span>剩餘時間：</span><span id="final-time" class="text-red-400 font-bold font-orbitron">-</span></p>
-          <p class="text-sm flex justify-between"><span>最終得分：</span><span id="final-score" class="text-yellow-400 font-bold font-orbitron">-</span></p>
-          <p class="text-sm flex justify-between"><span>難度航道：</span><span id="final-route" class="text-purple-400 font-bold">-</span></p>
-          <div class="border-t border-slate-800 pt-3">
-            <p class="text-xs text-slate-400 text-center">恭喜你獨立完成了 L7~L9, R3 課本及五月號雜誌的全部複習！</p>
+        <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 mb-6 space-y-3.5 text-left">
+          <h4 class="text-center font-bold text-cyan-400 text-base border-b border-slate-800 pb-2 font-orbitron">AGENT STATUS REPORT</h4>
+          <p class="text-xs flex justify-between"><span>特務小隊：</span><span id="final-team" class="text-slate-100 font-bold">-</span></p>
+          <p class="text-xs flex justify-between"><span>剩餘時間：</span><span id="final-time" class="text-red-400 font-bold font-orbitron">-</span></p>
+          <p class="text-xs flex justify-between"><span>最終得分：</span><span id="final-score" class="text-yellow-400 font-bold font-orbitron">-</span></p>
+          <p class="text-xs flex justify-between"><span>難度航道：</span><span id="final-route" class="text-purple-400 font-bold">-</span></p>
+          <div class="border-t border-slate-800 pt-2.5">
+            <p class="text-[10px] text-slate-400 text-center">恭喜你獨立完成了 L7~L9, R3 課本及五月號雜誌的全部複習！</p>
           </div>
         </div>
 
-        <button onclick="location.reload()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-widest">
+        <button onclick="location.reload()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-base py-3 rounded-xl transition-all duration-300 transform active:scale-95 tracking-widest">
           重置傳送儀器 <i class="fa-solid fa-arrows-rotate ml-2"></i>
         </button>
       </section>
 
       <!-- SCREEN 5: GAME OVER / FAILED -->
-      <section id="screen-gameover" class="hidden bg-slate-900/60 border border-red-800 rounded-2xl p-6 md:p-10 text-center glow-red backdrop-blur-sm">
-        <div class="mb-6 inline-block bg-red-950/50 p-6 rounded-full border border-red-500">
-          <i class="fa-solid fa-radiation text-6xl text-red-500 animate-spin-slow"></i>
+      <section id="screen-gameover" class="hidden bg-slate-900/60 border border-red-800 rounded-2xl p-6 md:p-10 text-center glow-red backdrop-blur-sm max-w-xl mx-auto">
+        <div class="mb-4 md:mb-6 inline-block bg-red-950/50 p-5 rounded-full border border-red-500">
+          <i class="fa-solid fa-radiation text-5xl md:text-6xl text-red-500 animate-spin-slow"></i>
         </div>
-        <h2 class="text-3xl md:text-5xl font-black text-red-500 mb-3 tracking-widest font-orbitron">SYSTEM COLLAPSED</h2>
-        <p class="text-lg text-slate-200 mb-6 font-bold">時空傳送門崩塌！知識已被黑洞完全吞噬...</p>
+        <h2 class="text-2xl md:text-4xl font-black text-red-500 mb-3 tracking-widest font-orbitron">SYSTEM COLLAPSED</h2>
+        <p class="text-xs md:text-base text-slate-200 mb-6 font-bold">時空傳送門崩塌！知識已被黑洞完全吞噬...</p>
         
-        <p class="text-sm text-slate-400 max-w-md mx-auto mb-8">
+        <p class="text-xs text-slate-400 mb-6 leading-relaxed">
           別氣餒！密室逃脫需要更快速的實體翻書、更高超的文法熟悉度。重新調整策略再試一次！
         </p>
 
-        <button onclick="location.reload()" class="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 text-slate-950 font-black text-lg px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 tracking-widest">
+        <button onclick="location.reload()" class="w-full bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 text-slate-950 font-black text-base py-3 rounded-xl transition-all duration-300 transform active:scale-95 tracking-widest">
           重啟時間迴圈 <i class="fa-solid fa-circle-play ml-2"></i>
         </button>
       </section>
@@ -266,7 +289,7 @@
   </main>
 
   <!-- ==================== FOOTER ==================== -->
-  <footer class="border-t border-slate-900 bg-slate-950/80 px-4 py-4 text-center text-xs text-slate-500">
+  <footer class="border-t border-slate-900 bg-slate-950/80 px-4 py-4 text-center text-[10px] text-slate-500">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
       <p>&copy; 2026 時空解密太空總署. 本遊戲專為龍騰高中英語 B2 期末考複習設計.</p>
       <p class="flex items-center gap-3">
@@ -277,19 +300,6 @@
     </div>
   </footer>
 
-  <!-- ==================== DIALOGS & MODALS ==================== -->
-  <!-- 1. Global Custom Alert Modal -->
-  <div id="modal-alert" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full glow-cyan text-center">
-      <div id="alert-icon" class="text-4xl text-cyan-400 mb-3"><i class="fa-solid fa-circle-info"></i></div>
-      <h4 id="alert-title" class="text-lg font-black text-slate-100 mb-2">通知</h4>
-      <p id="alert-text" class="text-sm text-slate-300 mb-6 leading-relaxed whitespace-pre-line text-left">內文</p>
-      <button onclick="closeAlert()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-2 px-4 rounded-lg border border-slate-600 transition-all">
-        確認收到
-      </button>
-    </div>
-  </div>
-
   <!-- ==================== JAVASCRIPT GAME LOGIC ==================== -->
   <script>
     // Game states
@@ -299,13 +309,12 @@
     let score = 0;
     let currentLevel = 1;
     let currentSubStep = 1; 
-    let currentDifficulty = 1; // 1 = Easy, 2 = Medium, 3 = Hard
+    let currentDifficulty = 2; // Starts at 2 (Medium) for diagnostic testing!
     let isInfernoRoute = false; 
     let levelOneMistakes = 0;
 
     // TOEFL Adaptive Structures
-    let playedQuestionIds = new Set();
-    let playedInThisLevel = new Set(); // Tracks unplayed in current level session
+    let playedInThisLevel = new Set(); // Tracks unique played question IDs in current level
     let failedQueue = []; // Keeps IDs of questions that the player answered wrong
     let currentActiveQuestion = null;
     let currentStepValidated = false;
@@ -316,6 +325,9 @@
 
     // Final clues inputs (For Level 5 clue validation)
     let s5Inputs = { A: "", B: "", C: "", D: "" };
+
+    // Mobile specific tabs
+    let currentMobileTab = "puzzle";
 
     // Obfuscated Expected Answers (Base64 Lowercase)
     const SECURE_KEYS = {
@@ -335,12 +347,12 @@
       UPON_HEARING: "dXBvaSBoZWFyaW5nIHRoZSBiZWxsIHJpbmcsIHRoZSBzdHVkZW50cyBsZWZ0IHRoZSBjbGFzc3Jvb20u",
       NO_MATTER_HOW: "bm8gbWF0dGVyIGhvdyBkaWZmaWN1bHQgdGhlIHRhc2sgaXMsIHRoZSBhc3Ryb25hdXQga2VwdCB0aGUgZG9vciBsb2NrZWQu",
       FIND_THEMSELVES: "ZmluZCB0aGVtc2VsdmVz", // find themselves
-      CLEAR_THAT: "aXQgYXMgb2J2aW91cyB0aGF0", // it is obvious that (standard clear/obvious)
+      CLEAR_THAT: "b2J2aW91cyB0aGF0", // obvious that
       NORMAL_LIFE: "bGVhZCBhIG5vcm1hbCBsaWZl", // lead a normal life
       CONTAINER: "Y29udGFpbmVy",        // container
       VEHICLE: "dmVoaWNsZQ==",          // vehicle
       EXPECTATIONS: "ZXhwZWN0YXRpb25z",  // expectations
-      STROLL: "c3Ryb2xs",              // stroll
+      STROLL: "c3Ryb2xsZWQ=",           // strolled (corrected base64 for 'strolled')
       NEIGHBORHOOD: "bmVpZ2hib3Job29k",  // neighborhood
 
       // Stage 3 Textbook Deep-Dive
@@ -353,13 +365,13 @@
       COMBINATION: "Y29tYmluYXRpb24=",  // combination
       DIGITAL: "ZGlnaXRhbA==",          // digital
       CURIOSITY: "Y3VyaW9zaXR5",        // curiosity
-      BRAND: "YnJhbmQ=",                // brand
+      BRAND: "YnJhbmRz",                // brands (matching option plurals)
 
       // Stage 4 Video ISS
-      GMT: "Z210",                      // gmt
+      GMT: "Z3JlZW53aWNoIG1lYW4gdGltZSAoZ210KQ==", // greenwich mean time (gmt)
       AIR: "YWly",                      // air
       SODA: "c29kYQ==",                  // soda
-      SPHERE: "c3BoZXJl",                // sphere
+      SPHERE: "c3BoZXJlcy==",            // spheres (plural in option)
       SWALLOW: "c3dhbGxvdw==",            // swallow
       TRASH: "dHJhc2g=",                // trash
       TWO: "dHdv",                      // two
@@ -380,7 +392,7 @@
       FINAL_ESSL: "ZXNzbA=="            // essl
     };
 
-    // Full 50-Question Pool (10 per stage) with MC (original) and FIB parameters
+    // Full 50-Question Pool
     const fullQuestionPool = [
       // ==================== STAGE 1: VOCAB & PHRASES ====================
       { id: "s1_q1", level: 1, difficulty: 1, type: "mc", prompt: "The smartphone is a universal tool that has achieved _______ popularity.", options: ["widespread", "temporary", "rare", "delicate"], answerB64: SECURE_KEYS.WIDESPREAD, hint: "Check L9 AIO p.90: 10 letters starting with w", log: "L9 AIO p.90: Find word meaning 'existing over a wide area'" },
@@ -439,20 +451,18 @@
       { id: "s5_q6", level: 5, difficulty: 3, type: "mc", prompt: "Lithuania Soup (p.18): What specific root vegetable gives this Lithuanian soup its vibrant pink color?", options: ["beet", "carrot", "turnip", "radish"], answerB64: SECURE_KEYS.BEET, hint: "Magazine p.18: 4 letters starting with b", log: "Lithuanian Pink Soup: Culinary ingredients" },
       { id: "s5_q7", level: 5, difficulty: 1, type: "mc", prompt: "Swifts Unit (p.24): Because swifts sleep, eat, and even mate on the wing, they spend most of their life in the _______.", options: ["air", "nest", "water", "tree"], answerB64: SECURE_KEYS.AIR_MAG, hint: "Magazine p.24: 3 letters starting with a", log: "Swifts: Life cycle in flight" },
       { id: "s5_q8", level: 5, difficulty: 2, type: "mc", prompt: "Sanrio Unit (p.32): Sanrio's most globally successful and iconic mascot created in 1974 is _______.", options: ["Hello Kitty", "Pompompurin", "My Melody", "Cinnamoroll"], answerB64: SECURE_KEYS.HELLO_KITTY, hint: "Magazine p.32: 2 words starting with H.K.", log: "Sanrio: Mascot profiles" },
-      { id: "s5_q9", level: 5, difficulty: 3, type: "mc", prompt: "Crete Unit (p.13): In grammar highlight, which phrase is used to introduce stories passed down from the past?", options: ["legend has it that", "in contrast", "run the risk of", "bring to mind"], answerB64: SECURE_KEYS.LEGEND_HAS_IT, hint: "Magazine p.13: starts with 'legend...'", log: "Crete: Grammar patterns" }
+      { id: "s5_q9", level: 5, difficulty: 3, type: "mc", prompt: "Crete Unit (p.13): In grammar highlight, which phrase is used to introduce stories passed down from the past?", options: ["legend has it that", "in contrast", "run the risk of", "bring to mind"], answerB64: SECURE_KEYS.LEGEND_HAS_IT, hint: "Magazine p.13: starts with 'legend...'", log: "Crete: Grammar patterns" },
+      { id: "s5_q10", level: 5, difficulty: 2, type: "mc", prompt: "Lithuania Soup (p.18): The Pink City Beetroot Soup Festival celebrates Lithuanian cuisine in which city?", options: ["Vilnius", "Kaunas", "Klaipeda", "Siauliai"], answerB64: SECURE_KEYS.SALTIBARSCIAI, hint: "Magazine p.18: Lithuania's historical capital city starting with V", log: "Pink Soup Festival: Lithuanian city context" }
     ];
 
     // Determine and Fetch Next Adaptive Question
     function getNextAdaptiveQuestion() {
       // 1. Spaced Repetition (Failed question review):
-      // 40% chance of drawing a previously failed question, IF failedQueue has items
-      if (failedQueue.length > 0 && Math.random() < 0.40) {
-        // Find a failed question that hasn't been played in this specific level yet
+      // 45% chance of drawing a previously failed question, IF failedQueue has items
+      if (failedQueue.length > 0 && Math.random() < 0.45) {
         let failedId = failedQueue.find(id => !playedInThisLevel.has(id));
         if (failedId) {
-          // Remove from queue so we don't spam it immediately
           failedQueue = failedQueue.filter(id => id !== failedId);
-          
           let originalQ = fullQuestionPool.find(q => q.id === failedId);
           if (originalQ) {
             let clonedQ = JSON.parse(JSON.stringify(originalQ));
@@ -465,26 +475,20 @@
       }
 
       // 2. Regular Adaptive Question Selection:
-      // Filter pool of questions for the CURRENT LEVEL that haven't been played in this level session
       let levelPool = fullQuestionPool.filter(q => q.level === currentLevel && !playedInThisLevel.has(q.id));
-      
       if (levelPool.length === 0) {
-        // Emergency fallback: allow repeating unplayed/played ones if we run out
         levelPool = fullQuestionPool.filter(q => q.level === currentLevel);
       }
 
       // TOEFL Adaptive Filter:
-      // Match current difficulty level (1 = Easy, 2 = Medium, 3 = Hard)
       let matched = levelPool.filter(q => q.difficulty === currentDifficulty);
       if (matched.length === 0) {
-        // Expand search to nearby difficulties
         matched = levelPool.filter(q => Math.abs(q.difficulty - currentDifficulty) <= 1);
       }
       if (matched.length === 0) {
-        matched = levelPool; // ultimate fallback
+        matched = levelPool; 
       }
 
-      // Randomly pick one
       let selected = matched[Math.floor(Math.random() * matched.length)];
       playedInThisLevel.add(selected.id);
       return selected;
@@ -511,8 +515,7 @@
       currentLevel = 1;
       currentSubStep = 1;
       levelOneMistakes = 0;
-      currentDifficulty = 1;
-      playedQuestionIds.clear();
+      currentDifficulty = 2; // Starts at 2 (Medium) for diagnostic testing!
       playedInThisLevel.clear();
       failedQueue = [];
       shuffledQuestions = [];
@@ -562,6 +565,7 @@
     // Update Book Logs - Dynamically renders right-hand book pointers based on the current level & standard vs. inferno path
     function updateBookLogs(level) {
       const container = document.getElementById("book-logs-container");
+      if (!container) return;
       container.innerHTML = "";
       
       let logs = [];
@@ -624,9 +628,11 @@
       playedInThisLevel.clear(); // Reset pool for this level session
 
       document.getElementById("level-num").innerText = level;
-      document.getElementById("level-title").innerHTML = `<i class="fa-solid fa-microchip text-cyan-400 animate-pulse"></i> ${levelConfigs[level].title}`;
-      document.getElementById("level-desc").innerText = levelConfigs[level].desc;
       
+      // Update responsive badges in header based on adaptive levels
+      const mobBadge = document.getElementById("mobile-difficulty-badge");
+      if (mobBadge) mobBadge.innerText = `關卡 ${level}/5`;
+
       loadNextStep();
     }
 
@@ -636,6 +642,8 @@
       currentActiveQuestion = getNextAdaptiveQuestion();
 
       // Render Dashboard Progress
+      const failedBacklogText = failedQueue.length > 0 ? `<span class="text-red-400"> (含 ${failedQueue.length} 題待修復時空弱點)</span>` : "";
+      document.getElementById("progress-info-label").innerHTML = `當前關卡子系統進度（需成功重構 10 題）：${failedBacklogText}`;
       document.getElementById("substep-counter").innerText = `${currentSubStep} / 10`;
       const progressPercent = ((currentSubStep - 1) / 10) * 100;
       document.getElementById("substep-progress").style.width = `${progressPercent}%`;
@@ -645,15 +653,20 @@
       if (currentActiveQuestion.isReview) {
         badge.innerText = "時空回漩 (弱點手寫) 🔄";
         badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-950 text-amber-400 border border-amber-800 animate-pulse";
+        if (window.innerWidth < 1024) {
+          // If on mobile and a failed question is pushed, light up the notification dot on Logs tab to hint student!
+          const dot = document.getElementById("log-notification-dot");
+          if (dot) dot.classList.remove("hidden");
+        }
       } else {
         if (currentActiveQuestion.difficulty === 1) {
-          badge.innerText = "基礎和諧 🛡️";
+          badge.innerText = "基礎和諧 (偏易) 🛡️";
           badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-950 text-cyan-400 border border-cyan-800";
         } else if (currentActiveQuestion.difficulty === 2) {
-          badge.innerText = "中重力場 🌀";
+          badge.innerText = "中重力場 (適中) 🌀";
           badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-950 text-purple-400 border border-purple-800";
         } else {
-          badge.innerText = "高壓煉獄 💀";
+          badge.innerText = "高壓煉獄 (偏難) 💀";
           badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-950 text-red-400 border border-red-800 animate-pulse";
         }
       }
@@ -669,7 +682,7 @@
       currentStepValidated = false;
       const mainBtn = document.getElementById("main-action-btn");
       mainBtn.innerHTML = `驗證本題 <i class="fa-solid fa-unlock-keyhole"></i>`;
-      mainBtn.className = "flex-1 sm:flex-initial bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black px-8 py-2.5 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm";
+      mainBtn.className = "flex-1 md:flex-initial bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black px-8 h-12 rounded-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 text-xs tracking-wider";
       document.getElementById("console-msg").innerText = currentActiveQuestion.isReview ? "⚠️ 偵測到之前答錯的弱點！現已升級為手寫填充模式，請翻書拼寫。" : "控制面板已鎖定，請翻閱右側日誌指引定位。";
 
       renderActiveQuestionHTML(container);
@@ -682,25 +695,25 @@
       // 1. If Forced Review (FIB handwrite mode)
       if (q.type === "review_input") {
         container.innerHTML = `
-          <div class="bg-slate-950/80 p-5 rounded-xl border border-amber-800/60 glow-purple animate-pulse">
+          <div class="bg-slate-950/80 p-4 md:p-5 rounded-xl border border-amber-800/60 glow-purple animate-pulse">
             <span class="text-xs font-bold text-amber-400 block mb-2 font-orbitron"><i class="fa-solid fa-arrows-spin"></i> TIME RECOVERY / 錯題強化手寫模式</span>
-            <p class="text-sm text-slate-200 mb-4 leading-relaxed">
+            <p class="text-xs md:text-sm text-slate-200 mb-4 leading-relaxed">
               ${q.prompt}
             </p>
-            <input type="text" id="active-fib-input" placeholder="請輸入本題的正確英文答案..." class="w-full bg-slate-900 border border-amber-700 rounded-lg px-4 py-2.5 text-xs text-amber-200 font-mono focus:outline-none focus:border-amber-500">
-            <p class="text-[11px] text-slate-400 mt-2">提示：此題先前未完整掌握，現已取消選項提示，請查書後拼寫正確單字/片語。</p>
+            <input type="text" id="active-fib-input" placeholder="請填入此英文答案拼寫..." class="w-full h-12 bg-slate-900 border border-amber-700 rounded-lg px-4 text-base text-amber-200 font-mono focus:outline-none focus:border-amber-500" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <p class="text-[10px] text-slate-400 mt-2">提示：此題先前未完整掌握，現已取消選項提示，請查書後拼寫正確單字/片語。</p>
           </div>
         `;
       } 
       // 2. Standard Multiple Choice (mc)
       else if (q.type === "mc") {
         container.innerHTML = `
-          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+          <div class="bg-slate-950/80 p-4 md:p-5 rounded-xl border border-slate-800">
             <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">CORE PRACTICE</span>
-            <p class="text-sm text-slate-200 mb-4 leading-relaxed">${q.prompt}</p>
+            <p class="text-xs md:text-sm text-slate-200 mb-4 leading-relaxed">${q.prompt}</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs" id="mc-options-container">
               ${q.options.map((opt, i) => `
-                <button onclick="selectMCOption('${opt}')" class="mc-btn p-3 bg-slate-900 rounded-lg border border-slate-800 hover:border-cyan-500 text-left transition-all flex items-center justify-between">
+                <button onclick="selectMCOption('${opt}')" class="mc-btn min-h-[48px] p-3 bg-slate-900 rounded-lg border border-slate-800 hover:border-cyan-500 text-left transition-all flex items-center justify-between">
                   <span>${opt}</span>
                   <span class="text-slate-600 font-mono">[${i+1}]</span>
                 </button>
@@ -709,19 +722,19 @@
             <p class="text-[11px] text-yellow-400 mt-3">當前選擇：<span id="mc-selection-preview" class="font-bold">-</span></p>
           </div>
         `;
-        selectedPhraseA = ""; // reset temporary store
+        selectedPhraseA = ""; 
       } 
       // 3. Stage 1 Phrase match
       else if (q.type === "phrase") {
         container.innerHTML = `
-          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+          <div class="bg-slate-950/80 p-4 md:p-5 rounded-xl border border-slate-800">
             <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">PHRASE SELECTION</span>
-            <p class="text-sm text-slate-200 mb-4 leading-relaxed">${q.prompt}</p>
+            <p class="text-xs md:text-sm text-slate-200 mb-4 leading-relaxed">${q.prompt}</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <button onclick="selectPhraseOnly('keep pace with')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">keep pace with</button>
-              <button onclick="selectPhraseOnly('in pursuit of')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in pursuit of</button>
-              <button onclick="selectPhraseOnly('No matter')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all font-mono">No matter</button>
-              <button onclick="selectPhraseOnly('in combination with')" class="s1-opt-btn p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in combination with</button>
+              <button onclick="selectPhraseOnly('keep pace with')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">keep pace with</button>
+              <button onclick="selectPhraseOnly('in pursuit of')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in pursuit of</button>
+              <button onclick="selectPhraseOnly('No matter')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all font-mono">No matter</button>
+              <button onclick="selectPhraseOnly('in combination with')" class="s1-opt-btn min-h-[48px] p-3 bg-slate-900 rounded border border-slate-800 hover:border-cyan-500 text-left transition-all">in combination with</button>
             </div>
             <p class="text-[11px] text-yellow-400 mt-3">當前選擇：<span id="s1-phrase-preview" class="font-bold">-</span></p>
           </div>
@@ -731,13 +744,13 @@
       // 4. Stage 2 Sentence Reordering
       else if (q.type === "reorder") {
         container.innerHTML = `
-          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+          <div class="bg-slate-950/80 p-4 md:p-5 rounded-xl border border-slate-800">
             <span class="text-xs font-bold text-cyan-400 block mb-2 font-orbitron">SENTENCE REORDERING</span>
-            <p class="text-sm text-slate-200 mb-3">${q.prompt}</p>
+            <p class="text-xs md:text-sm text-slate-200 mb-3">${q.prompt}</p>
             <div id="reorder-target" class="min-h-12 bg-slate-900 rounded border border-dashed border-slate-700 p-3 flex flex-wrap gap-2 items-center mb-4"></div>
             <div class="flex flex-wrap gap-2 justify-center" id="reorder-pool">
               ${q.pool.map(item => `
-                <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1.5 rounded border border-slate-600 text-xs font-mono">${item}</button>
+                <button onclick="addBlock(this)" class="block-item bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-2.5 rounded border border-slate-600 text-xs font-mono min-h-[40px]">${item}</button>
               `).join('')}
             </div>
             <div class="text-right mt-3">
@@ -753,11 +766,35 @@
           <div class="aspect-video w-full rounded-lg overflow-hidden border border-slate-800 bg-black mb-4">
             <iframe class="w-full h-full" src="https://www.youtube.com/embed/OBIxbULqDxY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
-          <p class="text-[11px] text-slate-400 leading-normal text-center bg-slate-950/50 p-2 rounded border border-slate-800 mb-3">
+          <p class="text-[10px] md:text-[11px] text-slate-400 leading-normal text-center bg-slate-950/50 p-2 rounded border border-slate-800 mb-3">
             <i class="fa-solid fa-satellite-dish animate-pulse"></i> 特務提示：請配戴耳機觀看影片並拉取進度條，回答下列太空生存謎題。
           </p>
         `;
         container.insertAdjacentHTML('afterbegin', videoHtml);
+      }
+    }
+
+    // Responsive Mobile Tab Switcher
+    function switchMobileTab(tab) {
+      currentMobileTab = tab;
+      const puzzleBtn = document.getElementById("tab-btn-puzzle");
+      const logsBtn = document.getElementById("tab-btn-logs");
+      const puzzlePanel = document.getElementById("panel-puzzle");
+      const logsPanel = document.getElementById("panel-logs");
+      const notificationDot = document.getElementById("log-notification-dot");
+
+      if (tab === "puzzle") {
+        puzzlePanel.classList.remove("hidden");
+        logsPanel.classList.add("hidden");
+        puzzleBtn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-2 bg-cyan-950 text-cyan-400 border border-cyan-800";
+        logsBtn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-2 text-slate-400";
+      } else {
+        puzzlePanel.classList.add("hidden");
+        logsPanel.classList.remove("hidden");
+        logsPanel.classList.add("flex"); // Ensure flex display works well
+        logsBtn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-2 bg-cyan-950 text-cyan-400 border border-cyan-800";
+        puzzleBtn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-2 text-slate-400";
+        if (notificationDot) notificationDot.classList.add("hidden"); // clear dot
       }
     }
 
@@ -824,11 +861,14 @@
       const q = currentActiveQuestion;
 
       if (currentStepValidated) {
-        if (currentSubStep < 10) {
-          currentSubStep++;
-          loadNextStep();
+        if (currentSubStep < 10 || failedQueue.length > 0) {
+          if (currentSubStep >= 10 && failedQueue.length > 0) {
+            loadNextStep();
+          } else {
+            currentSubStep++;
+            loadNextStep();
+          }
         } else {
-          // Cleared Stage! Show Congratulations transition overlay
           triggerStageClearModal();
         }
         return;
@@ -857,35 +897,40 @@
       if (isCorrect) {
         playSuccessSound();
         
-        // Dynamic scoring depending on question difficulty
         let points = q.difficulty * 5; 
         if (q.isReview) {
-          points += 10; // extra reward for review mastery!
+          points += 15; 
         }
         updateScore(points);
 
         // Adjust Adaptive Difficulty Upwards
-        if (currentDifficulty < 3) currentDifficulty++;
+        if (currentDifficulty < 3) {
+          currentDifficulty++;
+        }
         
         // Show success UI status
         currentStepValidated = true;
         const mainBtn = document.getElementById("main-action-btn");
         mainBtn.innerHTML = `重構完成 ➔ 下一題 <i class="fa-solid fa-arrow-right"></i>`;
-        mainBtn.className = "flex-1 sm:flex-initial bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-slate-950 font-black px-8 py-2.5 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-sm";
+        mainBtn.className = "flex-1 md:flex-initial bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-slate-950 font-black px-8 h-12 rounded-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 text-xs tracking-wider";
 
-        feedback.innerText = "驗證正確！能量流已成功校正。請點擊『下一題』按鈕繼續。";
+        if (q.isReview) {
+          feedback.innerText = "🎉 太棒了！你成功攻克了先前失敗的題目，弱點數據修復完畢！";
+        } else {
+          feedback.innerText = "驗證正確！能量流已成功校正。請點擊『下一題』按鈕繼續。";
+        }
       } else {
         if (currentLevel === 1) {
-          levelOneMistakes++; // Track mistakes to determine normal/inferno
+          levelOneMistakes++; 
         }
         
-        // Push failed question to failedQueue for future TOEFL FIB reinforcement
         if (!failedQueue.includes(q.id)) {
           failedQueue.push(q.id);
         }
         
-        // Adjust Adaptive Difficulty Downwards
-        if (currentDifficulty > 1) currentDifficulty--;
+        if (currentDifficulty > 1) {
+          currentDifficulty--;
+        }
 
         playFailSound();
         feedback.innerText = "時空常數不匹配！請點擊『取得線索』翻閱對應文獻重新校準。";
@@ -894,7 +939,6 @@
 
     // Trigger congratulations overlay after finishing 10 subquestions
     function triggerStageClearModal() {
-      // Setup dynamic route choice upon L1 validation
       if (currentLevel === 1) {
         isInfernoRoute = (levelOneMistakes === 0);
       }
@@ -911,6 +955,11 @@
       document.getElementById("screen-stage-clear").classList.add("hidden");
       document.getElementById("screen-game").classList.remove("hidden");
       
+      // Auto-switch mobile back to puzzle screen when transition occurs
+      if (window.innerWidth < 1024) {
+        switchMobileTab('puzzle');
+      }
+
       if (currentLevel < 5) {
         currentLevel++;
         loadLevel(currentLevel);
@@ -972,6 +1021,18 @@
       const modal = document.getElementById("modal-about");
       modal.classList.toggle("hidden");
     }
+    
+    // Auto-adjust layout on window resize to ensure state is clean
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024) {
+        // Desktop forces both panels visible
+        document.getElementById("panel-puzzle").classList.remove("hidden");
+        document.getElementById("panel-logs").classList.remove("hidden");
+      } else {
+        // Mobile resets to current tab
+        switchMobileTab(currentMobileTab);
+      }
+    });
   </script>
 </body>
 </html>
